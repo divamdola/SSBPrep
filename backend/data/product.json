@@ -1,0 +1,35 @@
+[
+    {
+        "title":"CDS Book",
+        "price":"20",
+        "description":"No description",
+        "ratings":"4.5",
+        "images":[{
+            "public_id":"dbheubej",
+            "url":"fhbwhjbj"
+        }],
+        "category":"CDS"
+    },
+    {
+        "title":"NDA Book",
+        "price":"20",
+        "description":"No description",
+        "ratings":"5.5",
+        "images":[{
+            "public_id":"dbheubej",
+            "url":"fhbwhjbj"
+        }],
+        "category":"NDA"
+    },
+    {
+        "title":"SSB Book",
+        "price":"20",
+        "description":"No description",
+        "ratings":"8.5",
+        "images":[{
+            "public_id":"dbheubej",
+            "url":"fhbwhjbj"
+        }],
+        "category":"SSB"
+    }
+]
