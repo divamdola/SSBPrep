@@ -31,6 +31,8 @@ export const register = (userData) => async (dispatch) => {
 
     const { data } = await axiosInstance.post("/register", userData, config);
 
+    localStorage.setItem("token", data.token);
+
     dispatch({ type: REGISTER_USER_SUCCESS, payload: data.user });
   } catch (error) {
     console.error("Registration error:", error);

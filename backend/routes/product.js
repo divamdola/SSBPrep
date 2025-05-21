@@ -34,8 +34,6 @@ router.route("/admin/test/:id").put(isAuthenticatedUser,authorizeRoles('admin'),
 
 router.route("/test/submit/:id").post(isAuthenticatedUser, submitTest);
 
-router.route("/test/submit/:id").post(isAuthenticatedUser, submitTest);
-
 router.route("/test/result/:test_id").get(isAuthenticatedUser, getResult);
 
 router.route("/test/my-attempts").get(isAuthenticatedUser, getMyAttempts);
