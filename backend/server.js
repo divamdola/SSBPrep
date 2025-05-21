@@ -1,5 +1,5 @@
 const dotenv = require("dotenv");
-dotenv.config({ path: "backend/config/config.env" }); // ✅ Load first
+dotenv.config({ path: "./config/config.env" }); // ✅ Load first
 
 const app = require("./app");
 const connectDatabase = require("./config/database");
