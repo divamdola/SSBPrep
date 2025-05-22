@@ -15,6 +15,9 @@ import {
   DELETE_PRODUCT_REQUEST,
   DELETE_PRODUCT_SUCCESS,
   DELETE_PRODUCT_FAIL,
+  UPDATE_TEST_REQUEST,
+  UPDATE_TEST_SUCCESS,
+  UPDATE_TEST_FAIL,
 } from "../constants/adminConstants";
 
 //Load All Users
@@ -30,6 +33,7 @@ export const loadAllUsers = () => async (dispatch) => {
     });
   }
 };
+
 
 //Add Product (Books)
 export const addProduct = (productData) => async (dispatch) => {
@@ -89,7 +93,7 @@ export const deleteProduct = (productId) => async (dispatch) => {
 
     await axiosInstance.delete(`/admin/product/${productId}`);
 
-    dispatch({type:DELETE_PRODUCT_SUCCESS});
+    dispatch({ type: DELETE_PRODUCT_SUCCESS });
   } catch (error) {
     dispatch({
       type: DELETE_PRODUCT_FAIL,
@@ -119,6 +123,31 @@ export const updateProduct = (productId, productData) => async (dispatch) => {
     dispatch({
       type: UPDATE_PRODUCT_FAIL,
       payload: error.response?.data?.message || "Error updating product",
+    });
+  }
+};
+
+//Update Test
+export const updateTest = (testId, testData) => async (dispatch) => {
+  try {
+    dispatch({ type: UPDATE_TEST_REQUEST });
+
+    const config = { headers: { "Content-Type": "application/json" } };
+
+    const { data } = await axiosInstance.put(
+      `/admin/test/${testId}`,
+      testData,
+      config
+    );
+
+    dispatch({
+      type: UPDATE_TEST_SUCCESS,
+      payload: data.test,
+    });
+  } catch (error) {
+    dispatch({
+      type: UPDATE_TEST_FAIL,
+      payload: error.response?.data?.message || "Error updating test",
     });
   }
 };

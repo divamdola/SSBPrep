@@ -33,6 +33,36 @@ export const getProducts = (category) => async (dispatch) => {
   }
 };
 
+// For Admin: Get all tests (flattened from groupedTests)
+export const getAllTestsAdmin = () => async (dispatch) => {
+  try {
+    dispatch({ type: TEST_REQUEST });
+
+    const { data: testData } = await axiosInstance.get(`/test`); // fetch all, no category filter
+
+    const grouped = testData.groupedTests || {};
+    const flattenedTests = Object.values(grouped).flat();
+
+    const { data: attemptsData } = await axiosInstance.get(`/test/my-attempts`);
+
+    dispatch({
+      type: TEST_SUCCESS,
+      payload: {
+        tests: flattenedTests,
+        attempts: attemptsData.attempts || [],
+      },
+    });
+
+  } catch (error) {
+    console.error("❌ Admin Test API Error:", error.response?.data || error.message);
+    dispatch({
+      type: TEST_FAIL,
+      payload: error.response?.data?.message || "Error fetching admin tests",
+    });
+  }
+};
+
+
 // Get All Test
 export const getTests = (category) => async (dispatch) => {
   try {

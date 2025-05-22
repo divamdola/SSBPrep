@@ -15,6 +15,9 @@ import {
   DELETE_PRODUCT_REQUEST,
   DELETE_PRODUCT_SUCCESS,
   DELETE_PRODUCT_FAIL,
+  UPDATE_TEST_REQUEST,
+  UPDATE_TEST_SUCCESS,
+  UPDATE_TEST_FAIL,
 } from "../constants/adminConstants";
 
 const initialState = {
@@ -36,6 +39,13 @@ export const adminReducer = (state = initialState, action) => {
       return {
         ...state,
         loading: true,
+      };
+
+    case UPDATE_TEST_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        updateSuccess: false,
       };
 
     case DELETE_PRODUCT_REQUEST:
@@ -118,8 +128,22 @@ export const adminReducer = (state = initialState, action) => {
         updateSuccess: true,
       };
 
+    case UPDATE_TEST_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        updateSuccess: true,
+      };
+
     case UPDATE_PRODUCT_FAIL:
       return { ...state, loading: false, error: action.payload };
+
+    case UPDATE_TEST_FAIL:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
 
     case UPDATE_PRODUCT_RESET:
       return {

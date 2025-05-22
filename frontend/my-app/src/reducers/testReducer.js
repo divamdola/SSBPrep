@@ -39,14 +39,14 @@ export const testReducer = (
         };
 
 
-        case TEST_SUCCESS:
-            return {
-              ...state,
-              loading: false,
-              tests: action.payload.tests,
-              attempts: action.payload.attempts,
-              error: null,
-            };
+       case TEST_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        tests: Array.isArray(action.payload.tests) ? action.payload.tests : [],
+        attempts: action.payload.attempts || [],
+        error: null,
+      };
           
     case TEST_FAIL:
     case TEST_SUBMIT_FAIL:
