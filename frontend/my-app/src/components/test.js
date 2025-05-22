@@ -71,29 +71,31 @@ const Test = () => {
   }, [dispatch, exam]);
 
   useEffect(() => {
-    const test = tests.find((t) => t._id === id);
-    if (test) {
-      setCurrentTest(test);
+  const test = tests.find((t) => t._id === id);
+  if (test) {
+    setCurrentTest(test);
 
-      // Resume time if test was paused
-      const paused = JSON.parse(localStorage.getItem("pausedTest"));
-      if (isResume && paused?.timeLeft) {
-        setTimeLeft(paused.timeLeft);
-        setAnswers(paused.answers || {});
-        setCurrentQuestionIndex(paused.currentQuestionIndex || 0);
-      } else {
-        setTimeLeft(test.timeDuration * 60);
-      }
+    const paused = JSON.parse(localStorage.getItem("pausedTest"));
+    if (isResume && paused?.timeLeft) {
+      setTimeLeft(paused.timeLeft);
+      setAnswers(paused.answers || {});
+      setCurrentQuestionIndex(paused.currentQuestionIndex || 0);
+    } else {
+      setTimeLeft(test.timeDuration * 60);
+    }
 
-      // Enter fullscreen
+    // Only try to enter fullscreen on non-mobile devices
+    if (window.innerWidth > 768 && isFullscreenAvailable()) {
       const elem = document.documentElement;
       if (!document.fullscreenElement) {
-        elem
-          .requestFullscreen()
-          .catch((err) => console.error("Failed to enter full screen:", err));
+        elem.requestFullscreen?.().catch((err) =>
+          console.error("Failed to enter full screen:", err)
+        );
       }
     }
-  }, [tests, id, isResume]);
+  }
+}, [tests, id, isResume]);
+
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -179,14 +181,35 @@ const Test = () => {
     }
   };
 
-  const toggleFullScreen = () => {
-    const elem = document.documentElement;
-    if (!document.fullscreenElement) {
-      elem.requestFullscreen().catch((err) => console.error(err));
-    } else {
-      document.exitFullscreen();
-    }
-  };
+const isFullscreenAvailable = () => {
+  return (
+    document.fullscreenEnabled ||
+    document.webkitFullscreenEnabled ||
+    document.mozFullScreenEnabled ||
+    document.msFullscreenEnabled
+  );
+};
+
+const toggleFullScreen = () => {
+  const elem = document.documentElement;
+  if (!isFullscreenAvailable()) {
+    alert("Fullscreen is not supported on this device.");
+    return;
+  }
+
+  if (!document.fullscreenElement) {
+    elem.requestFullscreen?.()
+      || elem.webkitRequestFullscreen?.()
+      || elem.mozRequestFullScreen?.()
+      || elem.msRequestFullscreen?.();
+  } else {
+    document.exitFullscreen?.()
+      || document.webkitExitFullscreen?.()
+      || document.mozCancelFullScreen?.()
+      || document.msExitFullscreen?.();
+  }
+};
+
 
   if (error) {
     return <p style={{ color: "red" }}>❌ Failed to load test: {error}</p>;

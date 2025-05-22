@@ -93,7 +93,7 @@ const EditExams = () => {
   if (error) return <p className="text-danger">{error}</p>;
 
   return (
-    <div className="edit-exams container">
+    <div className="edit-exams container mt-5 mb-5">
       <table className="table table-striped">
         <thead>
           <tr>
