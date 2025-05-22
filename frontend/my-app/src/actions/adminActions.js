@@ -18,7 +18,12 @@ import {
   UPDATE_TEST_REQUEST,
   UPDATE_TEST_SUCCESS,
   UPDATE_TEST_FAIL,
+  DELETE_TEST_REQUEST,
+  DELETE_TEST_SUCCESS,
+  DELETE_TEST_FAIL,
 } from "../constants/adminConstants";
+
+import {TEST_REQUEST, TEST_SUCCESS, TEST_FAIL} from "../constants/productConstants";
 
 //Load All Users
 export const loadAllUsers = () => async (dispatch) => {
@@ -33,7 +38,6 @@ export const loadAllUsers = () => async (dispatch) => {
     });
   }
 };
-
 
 //Add Product (Books)
 export const addProduct = (productData) => async (dispatch) => {
@@ -148,6 +152,44 @@ export const updateTest = (testId, testData) => async (dispatch) => {
     dispatch({
       type: UPDATE_TEST_FAIL,
       payload: error.response?.data?.message || "Error updating test",
+    });
+  }
+};
+
+//Delete Test
+export const deleteTest = (testId) => async (dispatch) => {
+  try {
+    dispatch({ type: DELETE_TEST_REQUEST });
+
+    await axiosInstance.delete(`/admin/test/${testId}`);
+
+    dispatch({ type: DELETE_TEST_SUCCESS });
+  } catch (error) {
+    dispatch({
+      type: DELETE_TEST_FAIL,
+      payload: error.response?.data?.message || "Error deleting test",
+    });
+  }
+};
+
+//Add Test
+export const addTest = (testData) => async (dispatch) => {
+  try {
+    dispatch({ type: TEST_REQUEST });
+
+    const config = { headers: { "Content-Type": "application/json" } };
+
+    const { data } = await axiosInstance.post(
+      "/admin/test/new",
+      testData,
+      config
+    );
+
+    dispatch({ type: TEST_SUCCESS, payload: data.test });
+  } catch (error) {
+    dispatch({
+      type: TEST_FAIL,
+      payload: error.response?.data?.message || "Error adding test",
     });
   }
 };

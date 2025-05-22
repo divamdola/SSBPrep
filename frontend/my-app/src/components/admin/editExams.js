@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllTestsAdmin } from "../../actions/productActions";
-import { updateTest } from "../../actions/adminActions";
+import { updateTest, deleteTest } from "../../actions/adminActions";
+import UploadCSVTest from "./uploads/uploadCSVTest";
 
 const EditExams = () => {
   const dispatch = useDispatch();
@@ -52,6 +53,19 @@ const EditExams = () => {
       setForm({ ...form, [id]: value });
     }
   };
+
+ const handleDelete = async (id) => {
+  if (window.confirm("Are you sure you want to delete this test?")) {
+    try {
+      await dispatch(deleteTest(id));
+      alert("Test deleted successfully.");
+      dispatch(getAllTestsAdmin()); // Re-fetch updated test list
+    } catch (err) {
+      alert("Failed to delete the test.");
+    }
+  }
+};
+
 
   const updateQuestionField = (field, value) => {
     const updatedQuestions = [...form.questions];
@@ -104,13 +118,20 @@ const EditExams = () => {
                 <td>{test.title}</td>
                 <td>{test.category}</td>
                 <td>{test.typeOfTest}</td>
-                <td>
+                <td className=" d-flex gap-4">
                   <button
                     type="button"
-                    className="btn btn-success"
+                    className="btn btn-success btn-circle btn-lg btn-circle"
                     onClick={() => handleEditClick(test)}
                   >
-                    Edit
+                    <img src="/images/edit.svg" alt="edit" />
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-circle btn-lg btn-circle"
+                    onClick={() => handleDelete(test._id)}
+                  >
+                    <img src="/images/delete.svg" alt="delete" />
                   </button>
                 </td>
               </tr>
@@ -120,10 +141,11 @@ const EditExams = () => {
       </table>
 
       {/* Form */}
-      {selectedTestId && form.questions && (
-        <form className="row g-3 mt-4" onSubmit={handleSubmit}>
+        {selectedTestId && form.questions && (
+        <div className="container bg-body-tertiary p-4 rounded-top">
+        <form className="row g-3" onSubmit={handleSubmit}>
           <div className="col-md-6">
-            <label htmlFor="title" className="form-label fw-semibold">
+            <label htmlFor="title" className="form-label text-secondary-emphasis fw-semibold">
               Title
             </label>
             <input
@@ -136,7 +158,7 @@ const EditExams = () => {
           </div>
 
           <div className="col-md-6">
-            <label htmlFor="category" className="form-label fw-semibold">
+            <label htmlFor="category" className="form-label text-secondary-emphasis fw-semibold">
               Category
             </label>
             <input
@@ -150,7 +172,7 @@ const EditExams = () => {
           </div>
 
           <div className="col-md-6">
-            <label htmlFor="typeOfTest" className="form-label fw-semibold">
+            <label htmlFor="typeOfTest" className="form-label text-secondary-emphasis fw-semibold">
               Type of Test
             </label>
             <select
@@ -168,7 +190,7 @@ const EditExams = () => {
           </div>
 
           <div className="col-md-6">
-            <label htmlFor="timeDuration" className="form-label fw-semibold">
+            <label htmlFor="timeDuration" className="form-label text-secondary-emphasis fw-semibold">
               Time Duration (minutes)
             </label>
             <input
@@ -181,7 +203,7 @@ const EditExams = () => {
           </div>
 
           <div className="col-md-6">
-            <label htmlFor="correctMarks" className="form-label fw-semibold">
+            <label htmlFor="correctMarks" className="form-label text-secondary-emphasis fw-semibold">
               Correct Marks
             </label>
             <div className="input-group">
@@ -203,7 +225,7 @@ const EditExams = () => {
           </div>
 
           <div className="col-md-6">
-            <label htmlFor="incorrectMarks" className="form-label fw-semibold">
+            <label htmlFor="incorrectMarks" className="form-label text-secondary-emphasis fw-semibold">
               Incorrect Marks
             </label>
             <div className="input-group">
@@ -226,7 +248,7 @@ const EditExams = () => {
 
           {/* Question Selector */}
           <div className="col-md-6">
-            <label htmlFor="questionNumber" className="form-label fw-semibold">
+            <label htmlFor="questionNumber" className="form-label text-secondary-emphasis fw-semibold">
               Question No.
             </label>
             <input
@@ -254,7 +276,7 @@ const EditExams = () => {
 
           {/* Selected Question */}
           <div className="col-md-6">
-            <label htmlFor="questionText" className="form-label fw-semibold">
+            <label htmlFor="questionText" className="form-label text-secondary-emphasis fw-semibold">
               Question Text
             </label>
             <input
@@ -270,7 +292,7 @@ const EditExams = () => {
             <div className="col-md-6" key={num}>
               <label
                 htmlFor={`option${num}`}
-                className="form-label fw-semibold"
+                className="form-label text-secondary-emphasis fw-semibold"
               >
                 Option {num}
               </label>
@@ -285,7 +307,7 @@ const EditExams = () => {
           ))}
 
           <div className="col-md-6">
-            <label htmlFor="answer" className="form-label fw-semibold">
+            <label htmlFor="answer" className="form-label text-secondary-emphasis fw-semibold">
               Correct Answer
             </label>
             <input
@@ -297,13 +319,26 @@ const EditExams = () => {
             />
           </div>
 
-          <div className="col-12">
+          <div className="col-12 d-flex justify-content-between">
             <button type="submit" className="btn btn-primary">
               Update Test
             </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                setSelectedTestId(null);
+                setForm({});
+                setSelectedQuestionIndex(0);
+              }}
+            >
+              Cancel
+            </button>
           </div>
         </form>
+      </div>
       )}
+        <UploadCSVTest />
     </div>
   );
 };
