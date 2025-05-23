@@ -25,6 +25,7 @@ import AdminPanel from "./components/admin/adminPanel";
 import UserDetails from "./components/admin/userDetails";
 import EditBooks from "./components/admin/editBooks";
 import EditExams from "./components/admin/editExams";
+import ViewReports from "./components/admin/viewReports";
 
 function App() {
   const dispatch = useDispatch();
@@ -96,6 +97,10 @@ function App() {
           <Route
             path="/admin-panel/exams"
             element={user && user.role === "admin" ? <MainLayout><EditExams /></MainLayout> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/admin-panel/reports"
+            element={user && user.role === "admin" ? <MainLayout><ViewReports /></MainLayout> : <Navigate to="/login" />}
           />
 
         </Routes>
