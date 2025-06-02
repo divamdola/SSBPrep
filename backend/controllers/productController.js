@@ -1,6 +1,7 @@
 const Product = require("../models/product");
 const Test=require("../models/test");
-const TestAttempt=require("../models/testAttempt");
+// const TestAttempt = require("../models/TestAttempt");
+const TestAttempt = require("../models/testAttempt");
 const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middlewares/catchAsyncErrors");
 const APIFeatures = require("../utils/apiFeatures");
