@@ -97,17 +97,35 @@ export const submitTest = (testData) => async (dispatch) => {
   try {
     dispatch({ type: TEST_SUBMIT_REQUEST });
 
-    const { data } = await axiosInstance.post(`/test/submit/${testData.testId}`, testData);
+    const config = {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+
+    const { data } = await axiosInstance.post(
+      `/test/submit/${testData.testId}`,
+      {
+        answers: testData.answers,
+        timeTaken: testData.timeTaken
+      },
+      config
+    );
 
     dispatch({
       type: TEST_SUBMIT_SUCCESS,
-      payload: data.attempt,// assuming response is { attempt: {...} }
+      payload: data
     });
+
+    return { success: true, attempt: data.attempt };
+
   } catch (error) {
+    console.error("Submit Test Error:", error.response?.data || error);
     dispatch({
       type: TEST_SUBMIT_FAIL,
-      payload: error.response?.data?.message || error.message,
+      payload: error.response?.data?.message || "Failed to submit test"
     });
+    throw error;
   }
 };
 
@@ -118,16 +136,28 @@ export const getResult = (testId) => async (dispatch) => {
     dispatch({ type: TEST_RESULT_REQUEST });
 
     const { data } = await axiosInstance.get(`/test/result/${testId}`);
+    
+    if (!data.success) {
+      throw new Error(data.message || "Failed to fetch result");
+    }
 
     dispatch({
       type: TEST_RESULT_SUCCESS,
-      payload: data.result,
+      payload: {
+        result: data.result,
+        stats: data.stats
+      }
     });
+
+    return { success: true, result: data.result };
+
   } catch (error) {
+    console.error("Get Result Error:", error.response?.data || error);
     dispatch({
       type: TEST_RESULT_FAIL,
-      payload: error.response?.data?.message || error.message,
+      payload: error.response?.data?.message || "Failed to fetch result"
     });
+    throw error;
   }
 };
 

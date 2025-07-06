@@ -22,10 +22,12 @@ const testAttemptSchema = new mongoose.Schema(
         selectedOption: {
           type: String,
           required: true,
+          default: "Not Attempted"
         },
         isCorrect: {
           type: Boolean,
           required: true,
+          default: false
         },
       },
     ],

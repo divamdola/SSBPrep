@@ -1,0 +1,400 @@
+title,typeOfTest,timeDuration,marksCorrect,marksWrong,questionText,option1,option2,option3,option4,answer
+Biology Test,Full Mock Test,60,1,0.222,"Consider the following statements about cellular organization:
+1. Prokaryotes lack membrane-bound organelles
+2. Eukaryotes have a well-defined nuclear membrane
+3. Bacteria have a single circular chromosome
+4. All prokaryotes are unicellular
+
+Select the correct statements:","1, 2 and 3 only","2, 3 and 4 only","1, 3 and 4 only","All of the above","1, 2 and 3 only"
+Biology Test,Full Mock Test,60,1,0.222,"Match List-I with List-II:
+List-I (Cell Organelle)          List-II (Function)
+A. Mitochondria                1. Protein synthesis
+B. Chloroplast                 2. Photosynthesis
+C. Ribosomes                   3. ATP production
+D. Golgi apparatus            4. Protein packaging
+
+Select the correct match:","A-3, B-2, C-1, D-4","A-2, B-3, C-4, D-1","A-1, B-2, C-3, D-4","A-4, B-3, C-2, D-1","A-3, B-2, C-1, D-4"
+Biology Test,Full Mock Test,60,1,0.222,"With reference to plant hormones, consider the following statements:
+1. Auxins promote cell elongation
+2. Cytokinins promote cell division
+3. Gibberellins inhibit stem growth
+4. Ethylene promotes fruit ripening
+
+Which statements are correct?","1, 2 and 4 only","2, 3 and 4 only","1, 3 and 4 only","All of the above","1, 2 and 4 only"
+Biology Test,Full Mock Test,60,1,0.222,"A researcher studying blood samples observes the following:
+1. Decreased hemoglobin levels
+2. Reduced oxygen-carrying capacity
+3. Microcytic red blood cells
+4. Pale skin color in the patient
+
+The most likely diagnosis and its cause is:","Iron deficiency anemia due to poor iron absorption","Thalassemia due to genetic mutation","Vitamin B12 deficiency due to poor diet","Sickle cell anemia due to abnormal hemoglobin","Iron deficiency anemia due to poor iron absorption"
+Biology Test,Full Mock Test,60,1,0.222,"Match the following plant tissues with their characteristics:
+A. Parenchyma     1. Dead cells with thick walls
+B. Collenchyma    2. Living cells with thin walls
+C. Sclerenchyma   3. Cells with thickened corners
+D. Xylem          4. Water conducting tissue
+
+Choose the correct match:","A-2, B-3, C-1, D-4","A-3, B-2, C-4, D-1","A-1, B-4, C-2, D-3","A-4, B-1, C-3, D-2","A-2, B-3, C-1, D-4"
+Biology Test,Full Mock Test,60,1,0.222,"Assertion (A): Arthropods are the most successful animal group on Earth.
+Reason (R): They have jointed appendages, segmented body, and an exoskeleton.
+
+Choose the correct answer:","A is true but R is false","Both A and R are true and R is the correct explanation of A","Both A and R are true but R is not the correct explanation of A","A is false but R is true","Both A and R are true and R is the correct explanation of A"
+Biology Test,Full Mock Test,60,1,0.222,"Consider the following about animal classification:
+1. Presence of notochord
+2. Bilateral symmetry
+3. Triploblastic organization
+4. Presence of coelom
+
+Which combination correctly represents characteristics of chordates?","1 and 2 only","1, 2 and 3 only","2, 3 and 4 only","All of the above","All of the above"
+Biology Test,Full Mock Test,60,1,0.222,"In the context of evolution and adaptation, which of the following statements about egg-laying mammals is/are correct?
+
+1. They represent a transitional form between reptiles and mammals
+2. They maintain constant body temperature
+3. They possess mammary glands
+4. They have a cloaca
+
+Select the correct answer:","1 and 3 only","2 and 4 only","1, 2 and 3 only","All of the above","All of the above"
+Biology Test,Full Mock Test,60,1,0.222,"Match List-I with List-II regarding circulatory systems:
+List-I (Animal)        List-II (Heart type)
+A. Fish               1. Three-chambered
+B. Amphibian          2. Two-chambered
+C. Reptile            3. Four-chambered
+D. Bird               4. Modified three-chambered
+
+Choose the correct match:","A-2, B-1, C-4, D-3","A-1, B-2, C-3, D-4","A-3, B-4, C-1, D-2","A-4, B-3, C-2, D-1","A-2, B-1, C-4, D-3"
+Biology Test,Full Mock Test,60,1,0.222,"With reference to human digestive enzymes, consider:
+1. Amylase breaks down starch
+2. Pepsin acts on proteins
+3. Lipase digests fats
+4. Trypsin works in acidic medium
+
+Which statements are correct?","1, 2 and 3 only","2, 3 and 4 only","1 and 2 only","All of the above","1, 2 and 3 only"
+Biology Test,Full Mock Test,60,1,0.222,"A patient presents with the following symptoms:
+1. Difficulty in blood clotting
+2. Prolonged bleeding time
+3. Easy bruising
+4. Normal platelet count
+
+The most likely diagnosis and treatment would be:","Hemophilia requiring Factor VIII","Von Willebrand disease requiring vWF","Vitamin K deficiency requiring supplementation","Thrombocytopenia requiring platelet transfusion","Vitamin K deficiency requiring supplementation"
+Biology Test,Full Mock Test,60,1,0.222,"Assertion (A): The heart's right ventricle is thinner than the left ventricle.
+Reason (R): The right ventricle pumps blood only to the lungs while the left ventricle pumps blood to the entire body.
+
+Choose the correct answer:","A is true but R is false","Both A and R are true and R is the correct explanation of A","Both A and R are true but R is not the correct explanation of A","A is false but R is true","Both A and R are true and R is the correct explanation of A"
+Biology Test,Full Mock Test,60,1,0.222,"Consider the following discoveries:
+1. Cell theory by Schleiden and Schwann
+2. Cell wall by Robert Hooke
+3. Nucleus by Robert Brown
+4. Protoplasm by Purkinje
+
+Arrange these discoveries in chronological order:","2-3-1-4","2-4-3-1","1-2-3-4","4-3-2-1","2-3-1-4"
+Biology Test,Full Mock Test,60,1,0.222,"Match List-I with List-II:
+List-I (Cell Component)    List-II (Function)
+A. Protoplasm             1. Control center
+B. Nucleus                2. Living content
+C. Cell membrane          3. Selective barrier
+D. Cytoplasm             4. Metabolic activities
+
+Select the correct match:","A-2, B-1, C-3, D-4","A-1, B-2, C-4, D-3","A-3, B-4, C-1, D-2","A-4, B-3, C-2, D-1","A-2, B-1, C-3, D-4"
+Biology Test,Full Mock Test,60,1,0.222,"A microbiologist observes the following features in a sample:
+1. Rod-shaped cells
+2. Presence of cell wall
+3. Binary fission
+4. No nuclear membrane
+
+The organism is most likely:","A virus","A bacterium","A fungus","A protozoan","A bacterium"
+Biology Test,Full Mock Test,60,1,0.222,"With reference to endocrine glands, which statements are correct?
+1. Pituitary controls other endocrine glands
+2. Thyroid regulates metabolism
+3. Adrenals produce stress hormones
+4. Pancreas produces only digestive enzymes
+
+Select the correct answer:","1, 2 and 3 only","2, 3 and 4 only","1 and 4 only","All of the above","1, 2 and 3 only"
+Biology Test,Full Mock Test,60,1,0.222,"Match the following vitamins with their deficiency diseases:
+A. Vitamin A     1. Night blindness
+B. Vitamin B12   2. Pernicious anemia
+C. Vitamin C     3. Scurvy
+D. Vitamin D     4. Rickets
+
+Choose the correct match:","A-1, B-2, C-3, D-4","A-2, B-3, C-4, D-1","A-3, B-4, C-1, D-2","A-4, B-1, C-2, D-3","A-1, B-2, C-3, D-4"
+Biology Test,Full Mock Test,60,1,0.222,"Consider the following about photosynthesis:
+1. Light reactions occur in grana
+2. Dark reactions occur in stroma
+3. ATP is produced in light reactions
+4. CO2 is fixed in dark reactions
+
+Which statements are correct?","1 and 2 only","2 and 3 only","1, 2 and 3 only","All of the above","All of the above"
+Biology Test,Full Mock Test,60,1,0.222,"Assertion (A): Insulin maintains blood glucose levels.
+Reason (R): Beta cells of pancreas secrete insulin in response to high blood glucose.
+
+Choose the correct answer:","A is true but R is false","Both A and R are true and R is the correct explanation of A","Both A and R are true but R is not the correct explanation of A","A is false but R is true","Both A and R are true and R is the correct explanation of A"
+Biology Test,Full Mock Test,60,1,0.222,"With reference to prokaryotic organisms, consider:
+1. Blue-green algae perform photosynthesis
+2. Mycoplasma lacks a cell wall
+3. All prokaryotes are harmful bacteria
+4. They have a single circular chromosome
+
+Which statements are correct?","1, 2 and 4 only","2, 3 and 4 only","1 and 3 only","All of the above","1, 2 and 4 only"
+Biology Test,Full Mock Test,60,1,0.222,"In the context of Whittaker's five-kingdom classification, match:
+A. Monera    1. Unicellular eukaryotes
+B. Protista  2. Prokaryotic organisms
+C. Fungi     3. Heterotrophs with cell wall
+D. Plantae   4. Autotrophs with chlorophyll
+
+Select the correct match:","A-2, B-1, C-3, D-4","A-1, B-2, C-4, D-3","A-3, B-4, C-1, D-2","A-4, B-3, C-2, D-1","A-2, B-1, C-3, D-4"
+Biology Test,Full Mock Test,60,1,0.222,"Consider these statements about Bryophytes:
+1. They lack vascular tissues
+2. They require water for reproduction
+3. They show alternation of generations
+4. They produce seeds for reproduction
+
+Which statements are correct?","1, 2 and 3 only","2, 3 and 4 only","1 and 4 only","All of the above","1, 2 and 3 only"
+Biology Test,Full Mock Test,60,1,0.222,"Assertion (A): Lichens are considered excellent indicators of air pollution.
+Reason (R): Lichens are sensitive to sulfur dioxide and show rapid decline in polluted areas.
+
+Choose the correct answer:","A is true but R is false","Both A and R are true and R is the correct explanation of A","Both A and R are true but R is not the correct explanation of A","A is false but R is true","Both A and R are true and R is the correct explanation of A"
+Biology Test,Full Mock Test,60,1,0.222,"Match the following regarding animal characteristics:
+A. Porifera         1. Tissue level organization
+B. Coelenterata     2. Cellular level organization
+C. Platyhelminthes  3. Organ level organization
+D. Annelida         4. Organ-system level organization
+
+Select the correct match:","A-2, B-1, C-3, D-4","A-1, B-2, C-4, D-3","A-3, B-4, C-1, D-2","A-4, B-3, C-2, D-1","A-2, B-1, C-3, D-4"
+Biology Test,Full Mock Test,60,1,0.222,"Consider these features of Annelids:
+1. Segmented body
+2. Bilateral symmetry
+3. True coelom
+4. Open circulatory system
+
+Which combination is correct?","1, 2 and 3 only","2, 3 and 4 only","1 and 4 only","All of the above","1, 2 and 3 only"
+Biology Test,Full Mock Test,60,1,0.222,"With reference to genetic disorders, analyze:
+1. Cystic fibrosis affects mucus production
+2. Hemophilia affects blood clotting
+3. Thalassemia affects hemoglobin structure
+4. Down syndrome is caused by viral infection
+
+Which statements are correct?","1, 2 and 3 only","2, 3 and 4 only","1 and 4 only","All of the above","1, 2 and 3 only"
+Biology Test,Full Mock Test,60,1,0.222,"Match the plant tissues with their functions:
+A. Xylem        1. Food transport
+B. Phloem       2. Water transport
+C. Parenchyma   3. Storage
+D. Collenchyma  4. Flexibility
+
+Choose the correct match:","A-2, B-1, C-3, D-4","A-1, B-2, C-4, D-3","A-3, B-4, C-1, D-2","A-4, B-3, C-2, D-1","A-2, B-1, C-3, D-4"
+Biology Test,Full Mock Test,60,1,0.222,"A plant physiologist observes:
+1. Dead cells with thick walls
+2. Lignin deposition
+3. No cytoplasm
+4. Elongated cells
+
+These features most likely represent:","Parenchyma tissue","Collenchyma tissue","Sclerenchyma tissue","Meristematic tissue","Sclerenchyma tissue"
+Biology Test,Full Mock Test,60,1,0.222,"Consider these statements about epithelial tissue:
+1. Forms protective covering
+2. Has regenerative capacity
+3. Contains blood vessels
+4. Shows stratification
+
+Which statements are correct?","1, 2 and 4 only","2, 3 and 4 only","1 and 3 only","All of the above","1, 2 and 4 only"
+Biology Test,Full Mock Test,60,1,0.222,"Match the following regarding blood components:
+A. RBCs      1. Defense
+B. WBCs      2. Oxygen transport
+C. Platelets 3. Clotting
+D. Plasma    4. Transport medium
+
+Select the correct match:","A-2, B-1, C-3, D-4","A-1, B-2, C-4, D-3","A-3, B-4, C-1, D-2","A-4, B-3, C-2, D-1","A-2, B-1, C-3, D-4"
+Biology Test,Full Mock Test,60,1,0.222,"Analyze these statements about bones:
+1. Contain calcium and phosphorus
+2. Provide attachment for muscles
+3. Produce blood cells
+4. Store fat in yellow marrow
+
+Which statements are correct?","1, 2 and 3 only","2, 3 and 4 only","1, 2 and 4 only","All of the above","All of the above"
+Biology Test,Full Mock Test,60,1,0.222,"In the context of nerve impulse transmission, consider:
+1. Synapses are junction between neurons
+2. Neurotransmitters are released at synapses
+3. Impulse transmission is bidirectional at synapses
+4. Synapses prevent continuous stimulation
+
+Which statements are correct?","1, 2 and 4 only","2, 3 and 4 only","1 and 3 only","All of the above","1, 2 and 4 only"
+Biology Test,Full Mock Test,60,1,0.222,"Match these hormones with their functions:
+A. Growth hormone    1. Blood sugar regulation
+B. Thyroxine        2. Growth and development
+C. Insulin          3. Metabolic rate
+D. Adrenaline       4. Fight or flight response
+
+Choose the correct match:","A-2, B-3, C-1, D-4","A-1, B-2, C-3, D-4","A-3, B-4, C-1, D-2","A-4, B-3, C-2, D-1","A-2, B-3, C-1, D-4"
+Biology Test,Full Mock Test,60,1,0.222,"A patient shows these symptoms:
+1. Enlarged thyroid gland
+2. Weight gain
+3. Lethargy
+4. Cold intolerance
+
+The most likely cause is:","Calcium deficiency","Iodine deficiency","Iron deficiency","Vitamin D deficiency","Iodine deficiency"
+Biology Test,Full Mock Test,60,1,0.222,"Consider these statements about pancreatic hormones:
+1. Insulin decreases blood glucose
+2. Glucagon increases blood glucose
+3. Both are produced by beta cells
+4. They have antagonistic effects
+
+Which statements are correct?","1, 2 and 4 only","2, 3 and 4 only","1 and 3 only","All of the above","1, 2 and 4 only"
+Biology Test,Full Mock Test,60,1,0.222,"Analyze these statements about growth disorders:
+1. Dwarfism is caused by growth hormone deficiency
+2. Gigantism is caused by excess growth hormone
+3. Cretinism is caused by thyroid hormone deficiency
+4. All can be treated with hormone replacement
+
+Which statements are correct?","1, 2 and 3 only","2, 3 and 4 only","1 and 4 only","All of the above","All of the above"
+Biology Test,Full Mock Test,60,1,0.222,"Match these organisms with their reproduction methods:
+A. Leishmania     1. Binary fission
+B. Yeast          2. Multiple fission
+C. Amoeba         3. Budding
+D. Plasmodium     4. Sporulation
+
+Select the correct match:","A-1, B-3, C-1, D-2","A-2, B-1, C-3, D-4","A-3, B-4, C-1, D-2","A-4, B-3, C-2, D-1","A-1, B-3, C-1, D-2"
+Biology Test,Full Mock Test,60,1,0.222,"With reference to plant reproduction, consider:
+1. Papaya plants can be monoecious or dioecious
+2. Watermelon always has unisexual flowers
+3. Complete flowers have both androecium and gynoecium
+4. All flowering plants are bisexual
+
+Which statements are correct?","1 and 3 only","2 and 4 only","1, 2 and 3 only","All of the above","1 and 3 only"
+Biology Test,Full Mock Test,60,1,0.222,"Match the following floral parts with their functions:
+A. Stamen    1. Female reproductive part
+B. Pistil    2. Male reproductive part
+C. Sepals    3. Protection of flower bud
+D. Petals    4. Attraction of pollinators
+
+Select the correct match:","A-2, B-1, C-3, D-4","A-1, B-2, C-4, D-3","A-3, B-4, C-1, D-2","A-4, B-3, C-2, D-1","A-2, B-1, C-3, D-4"
+Biology Test,Full Mock Test,60,1,0.222,"Consider these statements about disease-causing organisms:
+1. Leishmania causes Kala-azar
+2. Plasmodium causes Malaria
+3. Trypanosoma causes Sleeping sickness
+4. All are transmitted by mosquitoes
+
+Which statements are correct?","1, 2 and 3 only","2, 3 and 4 only","1 and 4 only","All of the above","1, 2 and 3 only"
+Biology Test,Full Mock Test,60,1,0.222,"Analyze these statements about photosynthesis:
+1. Light energy is converted to chemical energy
+2. Oxygen is produced as a byproduct
+3. Carbon dioxide is the final product
+4. Chlorophyll is essential for the process
+
+Which statements are correct?","1, 2 and 4 only","2, 3 and 4 only","1 and 3 only","All of the above","1, 2 and 4 only"
+Biology Test,Full Mock Test,60,1,0.222,"Match the following regarding cellular respiration:
+A. Glucose breakdown    1. ATP production
+B. Oxygen requirement  2. Energy release
+C. Carbon dioxide      3. Waste product
+D. ATP synthesis       4. Final electron acceptor
+
+Choose the correct match:","A-2, B-4, C-3, D-1","A-1, B-2, C-4, D-3","A-3, B-4, C-1, D-2","A-4, B-3, C-2, D-1","A-2, B-4, C-3, D-1"
+Biology Test,Full Mock Test,60,1,0.222,"A researcher studying muscle fatigue observes:
+1. Accumulation of lactic acid
+2. Decreased oxygen supply
+3. Reduced ATP production
+4. Muscle cramps
+
+The most likely condition being studied is:","Aerobic respiration","Anaerobic respiration","Muscle atrophy","Muscular dystrophy","Anaerobic respiration"
+Biology Test,Full Mock Test,60,1,0.222,"Consider these statements about carbohydrates:
+1. Glucose is a monosaccharide
+2. Sucrose is formed by glucose and fructose
+3. Starch is a storage polysaccharide
+4. Cellulose provides structural support
+
+Which statements are correct?","1, 2 and 3 only","2, 3 and 4 only","1 and 4 only","All of the above","All of the above"
+Biology Test,Full Mock Test,60,1,0.222,"Assertion (A): Mycoplasma is considered the smallest living cell.
+Reason (R): It lacks a cell wall and can survive without DNA.
+
+Choose the correct answer:","A is true but R is false","Both A and R are true and R is the correct explanation of A","Both A and R are true but R is not the correct explanation of A","A is false but R is true","A is true but R is false"
+Biology Test,Full Mock Test,60,1,0.222,"Match these cellular components with their composition:
+A. Plasma membrane    1. Proteins and nucleic acids
+B. Nuclear membrane   2. Lipids and proteins
+C. Cell wall         3. Cellulose and pectin
+D. Chromosomes       4. Double membrane with pores
+
+Select the correct match:","A-2, B-4, C-3, D-1","A-1, B-2, C-4, D-3","A-3, B-4, C-1, D-2","A-4, B-3, C-2, D-1","A-2, B-4, C-3, D-1"
+Biology Test,Full Mock Test,60,1,0.222,"Consider these statements about cell walls:
+1. Present in plants and bacteria
+2. Provides structural support
+3. Allows selective transport
+4. Made of same material in all organisms
+
+Which statements are correct?","1 and 2 only","2 and 3 only","1, 2 and 3 only","All of the above","1 and 2 only"
+Biology Test,Full Mock Test,60,1,0.222,"A cell biologist observes:
+1. Loss of cell contents
+2. Shrinkage of cytoplasm
+3. Membrane detachment from wall
+4. Cell in salt solution
+
+The process being studied is:","Osmosis","Plasmolysis","Deplasmolysis","Diffusion","Plasmolysis"
+Biology Test,Full Mock Test,60,1,0.222,"With reference to cell transport, analyze:
+1. Endocytosis brings material into the cell
+2. Amoeba feeds by phagocytosis
+3. Exocytosis requires ATP
+4. Diffusion is a passive process
+
+Which statements are correct?","1, 2 and 3 only","2, 3 and 4 only","1, 2 and 4 only","All of the above","All of the above"
+Biology Test,Full Mock Test,60,1,0.222,"Match the following regarding chromosomes:
+A. Diploid cell      1. 23 chromosomes
+B. Haploid cell      2. 46 chromosomes
+C. Somatic cell      3. Gamete
+D. Sex cell          4. Body cell
+
+Choose the correct match:","A-2, B-1, C-4, D-3","A-1, B-2, C-3, D-4","A-3, B-4, C-1, D-2","A-4, B-3, C-2, D-1","A-2, B-1, C-4, D-3"
+Biology Test,Full Mock Test,60,1,0.222,"Consider these statements about cell division:
+1. Mitosis maintains chromosome number
+2. Meiosis reduces chromosome number
+3. Mitosis occurs in all body cells
+4. Meiosis occurs only in sex organs
+
+Which statements are correct?","1, 2 and 3 only","2, 3 and 4 only","1 and 4 only","All of the above","All of the above"
+Biology Test,Full Mock Test,60,1,0.222,"A cell is placed in different solutions. Consider:
+1. Cell gains water in hypotonic solution
+2. Cell loses water in hypertonic solution
+3. No net water movement in isotonic solution
+4. Cell wall prevents bursting in plant cells
+
+Which statements are correct?","1, 2 and 3 only","2, 3 and 4 only","1, 2 and 4 only","All of the above","All of the above"
+Biology Test,Full Mock Test,60,1,0.222,"Match these plant tissues with their locations:
+A. Apical meristem     1. Stem and root tips
+B. Lateral meristem    2. Vascular cambium
+C. Ground tissue       3. Cortex and pith
+D. Dermal tissue       4. Epidermis
+
+Select the correct match:","A-1, B-2, C-3, D-4","A-2, B-1, C-4, D-3","A-3, B-4, C-1, D-2","A-4, B-3, C-2, D-1","A-1, B-2, C-3, D-4"
+Biology Test,Full Mock Test,60,1,0.222,"Analyze these statements about plant tissues:
+1. Parenchyma cells are living and thin-walled
+2. Collenchyma provides flexibility
+3. Sclerenchyma cells are dead at maturity
+4. All permanent tissues are capable of division
+
+Which statements are correct?","1, 2 and 3 only","2, 3 and 4 only","1 and 4 only","All of the above","1, 2 and 3 only"
+Biology Test,Full Mock Test,60,1,0.222,"Consider these features of cell organelles:
+1. Ribosomes synthesize proteins
+2. Golgi body modifies proteins
+3. Lysosomes contain digestive enzymes
+4. Mitochondria produce ATP
+
+Which statements are correct?","1, 2 and 3 only","2, 3 and 4 only","1 and 4 only","All of the above","All of the above"
+Biology Test,Full Mock Test,60,1,0.222,"Match these organelles with their functions:
+A. Mitochondria    1. Protein synthesis
+B. Chloroplast     2. Energy production
+C. Golgi body      3. Photosynthesis
+D. Ribosome        4. Protein modification
+
+Select the correct match:","A-2, B-3, C-4, D-1","A-1, B-2, C-3, D-4","A-3, B-4, C-1, D-2","A-4, B-3, C-2, D-1","A-2, B-3, C-4, D-1"
+Biology Test,Full Mock Test,60,1,0.222,"A cell biologist observes these features:
+1. Double membrane structure
+2. Own DNA and ribosomes
+3. Cristae formation
+4. ATP synthesis
+
+The organelle being studied is:","Nucleus","Chloroplast","Mitochondria","Golgi body","Mitochondria"
+Biology Test,Full Mock Test,60,1,0.222,"Consider these statements about plastids:
+1. Chloroplasts contain chlorophyll
+2. Chromoplasts provide color to flowers
+3. Leucoplasts store nutrients
+4. All plastids can interconvert
+
+Which statements are correct?","1, 2 and 3 only","2, 3 and 4 only","1 and 4 only","All of the above","All of the above"
+Biology Test,Full Mock Test,60,1,0.222,"Assertion (A): Prokaryotic cells are simpler than eukaryotic cells.
+Reason (R): Prokaryotes lack membrane-bound organelles and have a single circular chromosome.
+
+Choose the correct answer:","A is true but R is false","Both A and R are true and R is the correct explanation of A","Both A and R are true but R is not the correct explanation of A","A is false but R is true","Both A and R are true and R is the correct explanation of A"

@@ -23,23 +23,97 @@ const UploadCSVTest = () => {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      complete: function (results) {
+      complete: async function (results) {
         const parsedData = results.data;
+        
+        // Validate CSV structure
+        const requiredColumns = ['title', 'typeOfTest', 'timeDuration', 'marksCorrect', 'marksWrong', 
+                               'questionText', 'option1', 'option2', 'option3', 'option4', 'answer'];
+        const missingColumns = requiredColumns.filter(col => !results.meta.fields.includes(col));
+        
+        if (missingColumns.length > 0) {
+          alert(`Missing required columns: ${missingColumns.join(', ')}`);
+          return;
+        }
+
         const testData = transformCSVToTest(parsedData, category);
-        if (testData) {
-          dispatch(addTest(testData)).then(() => {
-            alert("Test added from CSV successfully!");
-            dispatch(getAllTestsAdmin()); // Re-fetch updated test list
-            setFile(null); // reset state
-            setCategory("");
+    
+        if (!testData || testData.questions.length === 0) {
+          alert("Invalid CSV format or no questions found.");
+          return;
+        }
+
+        // Validate test data
+        if (testData.timeDuration < 1) {
+          alert("Time duration must be at least 1 minute");
+          return;
+        }
+        if (testData.marksCorrect < 1) {
+          alert("Marks for correct answer must be at least 1");
+          return;
+        }
+        if (testData.marksWrong < 0) {
+          alert("Negative marks cannot be less than 0");
+          return;
+        }
+
+        // Validate questions
+        const invalidQuestions = [];
+        testData.questions.forEach((q, index) => {
+          const rowNumber = index + 1;
+          if (q.options.length !== 4) {
+            invalidQuestions.push({
+              rowNumber,
+              questionText: q.questionText,
+              error: `Question has ${q.options.length} options instead of 4`,
+              options: q.options
+            });
+          } else if (!q.options.includes(q.answer)) {
+            invalidQuestions.push({
+              rowNumber,
+              questionText: q.questionText,
+              error: "Answer doesn't match any option",
+              answer: q.answer,
+              options: q.options
+            });
+          }
+        });
+
+        if (invalidQuestions.length > 0) {
+          console.log("Invalid questions details:", invalidQuestions);
+          let errorMessage = `Found ${invalidQuestions.length} invalid questions:\n\n`;
+          invalidQuestions.forEach(q => {
+            errorMessage += `Row ${q.rowNumber}: "${q.questionText.substring(0, 50)}..."\n`;
+            errorMessage += `Error: ${q.error}\n`;
+            if (q.options) errorMessage += `Options: ${q.options.join(", ")}\n`;
+            if (q.answer) errorMessage += `Answer: ${q.answer}\n`;
+            errorMessage += "\n";
           });
-        } else {
-          alert("Invalid CSV format.");
+          alert(errorMessage);
+          return;
+        }
+    
+        try {
+          const response = await dispatch(addTest(testData));
+          if (response && response.success) {
+            alert("Test added from CSV successfully!");
+            dispatch(getAllTestsAdmin());
+            setFile(null);
+            setCategory("");
+          } else {
+            alert("Failed to add test. Please check the console for details.");
+          }
+        } catch (error) {
+          alert(`Upload failed: ${error.message || 'Unknown error occurred'}`);
+          console.error("Upload error:", error);
         }
       },
+      error: function(error) {
+        alert(`Error parsing CSV file: ${error}`);
+      }
     });
   };
-
+  
   const transformCSVToTest = (rows, selectedCategory) => {
     if (rows.length === 0) return null;
 

@@ -10,7 +10,7 @@ const Result = () => {
   const navigate = useNavigate();
   const { id: testId, exam, mockTest } = useParams();
 
-  const { results, tests } = useSelector((state) => state.tests);
+  const { results, tests, stats, loading, error } = useSelector((state) => state.tests);
 
   const testFromList = tests?.find((t) => t._id === testId);
   const testTitle = testFromList?.title || results?.test?.title || "Test Name";
@@ -30,11 +30,47 @@ const Result = () => {
     return `${mins}:${secs}`;
   };
 
+  const formatScore = (score) => {
+    return Number(score || 0).toFixed(2);
+  };
+
   const totalAttempted = results?.correctAnswers + results?.wrongAnswers;
   const accuracy =
     totalAttempted > 0
-      ? ((results?.correctAnswers / totalAttempted) * 100).toFixed(1)
-      : 0;
+      ? ((results?.correctAnswers / totalAttempted) * 100).toFixed(2)
+      : "0.00";
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loader">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <h2>Error</h2>
+        <p>{error}</p>
+        <button className="btn btn-primary" onClick={() => navigate(`/${exam}/${mockTest}`)}>
+          Go Back to Tests
+        </button>
+      </div>
+    );
+  }
+
+  if (!results) {
+    return (
+      <div className="error-container">
+        <h2>No Results Found</h2>
+        <p>The test results could not be found. Please try again.</p>
+        <button className="btn btn-primary" onClick={() => navigate(`/${exam}/${mockTest}`)}>
+          Go Back to Tests
+        </button>
+      </div>
+    );
+  }
 
   return (
     <Fragment>
@@ -69,7 +105,7 @@ const Result = () => {
                 <img src="/images/rank.svg" alt="rank" />
               </div>
               <div>
-                <p>2/20</p>
+                <p>{stats?.userRank || '--'}/{stats?.totalAttempts || '--'}</p>
                 <p className="para-text">Rank</p>
               </div>
             </div>
@@ -78,7 +114,7 @@ const Result = () => {
                 <img src="/images/score.svg" alt="Score" />
               </div>
               <div>
-                <p>{results?.score || 0}</p>
+                <p>{formatScore(results?.score)}</p>
                 <p className="para-text">Score</p>
               </div>
             </div>
@@ -122,25 +158,25 @@ const Result = () => {
                   <th>You</th>
                   <td>{results?.correctAnswers || 0}</td>
                   <td>{results?.wrongAnswers || 0}</td>
-                  <td>{results?.score || 0}</td>
+                  <td>{formatScore(results?.score)}</td>
                   <td>100</td>
                   <td>{formatTime(results?.timeTaken)}</td>
                 </tr>
                 <tr>
                   <th>Average</th>
-                  <td>--</td>
-                  <td>--</td>
-                  <td>--</td>
+                  <td>{stats?.average?.correctAnswers || '--'}</td>
+                  <td>{stats?.average?.wrongAnswers || '--'}</td>
+                  <td>{formatScore(stats?.average?.score)}</td>
                   <td>100</td>
-                  <td>--</td>
+                  <td>{formatTime(stats?.average?.timeTaken)}</td>
                 </tr>
                 <tr>
                   <th>Topper</th>
-                  <td>--</td>
-                  <td>--</td>
-                  <td>--</td>
+                  <td>{stats?.topper?.correctAnswers || '--'}</td>
+                  <td>{stats?.topper?.wrongAnswers || '--'}</td>
+                  <td>{formatScore(stats?.topper?.score)}</td>
                   <td>100</td>
-                  <td>--</td>
+                  <td>{formatTime(stats?.topper?.timeTaken)}</td>
                 </tr>
               </tbody>
             </table>

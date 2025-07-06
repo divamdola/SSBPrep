@@ -11,48 +11,90 @@ import {
   CLEAR_ERRORS,
 } from "../constants/productConstants";
 
-export const testReducer = (
-  state = { loading: false, tests: [], results: [], attempts: [], error: null },
-  action
-) => {
+const initialState = {
+  tests: [],
+  attempts: [],
+  results: null,
+  stats: null,
+  loading: false,
+  error: null,
+  submitting: false,
+  submitError: null
+};
+
+export const testReducer = (state = initialState, action) => {
   switch (action.type) {
     case TEST_REQUEST:
-    case TEST_SUBMIT_REQUEST:
-    case TEST_RESULT_REQUEST:
-      return { ...state, loading: true };
-
-    case TEST_SUBMIT_SUCCESS:
       return {
         ...state,
-        loading: false,
-        results: action.payload,  // might be just one result
-        error: null,
-      };
-    
-    case TEST_RESULT_SUCCESS:
-      return{
-        ...state,
-        loading:false,
-        results:action.payload,
-        error:null
+        loading: true,
+        error: null
       };
 
     case TEST_SUCCESS:
       return {
         ...state,
         loading: false,
-        tests: Array.isArray(action.payload.tests) ? action.payload.tests : [],
-        attempts: action.payload.attempts || [],
-        error: null,
+        tests: action.payload.tests,
+        attempts: action.payload.attempts
       };
-    
+
     case TEST_FAIL:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload
+      };
+
+    case TEST_SUBMIT_REQUEST:
+      return {
+        ...state,
+        submitting: true,
+        submitError: null
+      };
+
+    case TEST_SUBMIT_SUCCESS:
+      return {
+        ...state,
+        submitting: false,
+        submitError: null
+      };
+
     case TEST_SUBMIT_FAIL:
+      return {
+        ...state,
+        submitting: false,
+        submitError: action.payload
+      };
+
+    case TEST_RESULT_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null
+      };
+
+    case TEST_RESULT_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        results: action.payload.result,
+        stats: action.payload.stats
+      };
+
     case TEST_RESULT_FAIL:
-      return { ...state, loading: false, error: action.payload };
+      return {
+        ...state,
+        loading: false,
+        error: action.payload
+      };
 
     case CLEAR_ERRORS:
-      return { ...state, error: null };
+      return {
+        ...state,
+        error: null,
+        submitError: null
+      };
 
     default:
       return state;

@@ -7,9 +7,7 @@ import React, {
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { getTests } from "../actions/productActions";
-import { submitTest } from "../actions/productActions";
-import { getResult } from "../actions/productActions";
+import { getTests, submitTest, getResult } from "../actions/productActions";
 import MetaData from "./layouts/MetaData";
 
 const Test = () => {
@@ -24,6 +22,11 @@ const Test = () => {
   const [currentTest, setCurrentTest] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isTestPaused, setIsTestPaused] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [skippedQuestions, setSkippedQuestions] = useState(new Set());
+  const [visitedQuestions, setVisitedQuestions] = useState(new Set([0]));
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const pauseModalRef = useRef(null);
   const pauseModalInstanceRef = useRef(null);
@@ -34,35 +37,62 @@ const Test = () => {
 
   const handleSubmit = useCallback(async () => {
     if (!currentTest || !currentTest.questions) return;
-
-    const payload = {
-        testId: currentTest._id,
-        answers: currentTest.questions.map((_, idx) => answers[idx] || ""),
-        timeTaken: (currentTest.timeDuration * 60) - timeLeft,
-      };
+    if (isSubmitting) return;
 
     try {
-      await dispatch(submitTest(payload));
+      setIsSubmitting(true);
 
-      alert("✅ Test submitted!");
+      // Format answers according to the schema
+      const formattedAnswers = currentTest.questions.map((question, index) => {
+        const selectedOption = answers[index] || "";
+        return {
+          question: question.questionText,
+          selectedOption: selectedOption || "Not Attempted",
+          isCorrect: selectedOption === question.answer
+        };
+      });
+
+      const payload = {
+        testId: currentTest._id,
+        answers: formattedAnswers,
+        timeTaken: currentTest.timeDuration * 60 - timeLeft
+      };
+
+      // Submit test
+      const submitResponse = await dispatch(submitTest(payload));
+      
+      // Clear saved test state
       localStorage.removeItem("pausedTest");
-      await dispatch(getResult(currentTest._id));
-      navigate(
-        `/${selectedExam}/${selectedMockTest}/test/result/${currentTest._id}`
-      );
+
+      // Exit fullscreen mode if active
+      if (document.fullscreenElement) {
+        await document.exitFullscreen?.() ||
+              document.webkitExitFullscreen?.() ||
+              document.mozCancelFullScreen?.() ||
+              document.msExitFullscreen?.();
+      }
+
+      // Wait a moment for the submission to be processed and fullscreen to exit
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      try {
+        // Try to fetch result
+        await dispatch(getResult(currentTest._id));
+        navigate(`/${selectedExam}/${selectedMockTest}/test/result/${currentTest._id}`);
+      } catch (resultError) {
+        console.error("Failed to fetch result:", resultError);
+        // Even if result fetch fails, still navigate to result page
+        // It will handle showing loading state or retry fetching
+        navigate(`/${selectedExam}/${selectedMockTest}/test/result/${currentTest._id}`);
+      }
+
     } catch (error) {
-      console.error("❌ Error submitting test:", error);
-      alert("❌ Something went wrong while submitting the test.");
+      console.error("Test submission error:", error);
+      alert("Failed to submit test. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [
-    answers,
-    currentTest,
-    timeLeft,
-    dispatch,
-    navigate,
-    selectedExam,
-    selectedMockTest,
-  ]);
+  }, [currentTest, answers, timeLeft, dispatch, navigate, selectedExam, selectedMockTest, isSubmitting]);
 
   useEffect(() => {
     if (exam) {
@@ -71,31 +101,28 @@ const Test = () => {
   }, [dispatch, exam]);
 
   useEffect(() => {
-  const test = tests.find((t) => t._id === id);
-  if (test) {
-    setCurrentTest(test);
+    const test = tests.find((t) => t._id === id);
+    if (test) {
+      setCurrentTest(test);
+      const paused = JSON.parse(localStorage.getItem("pausedTest"));
+      if (isResume && paused?.timeLeft) {
+        setTimeLeft(paused.timeLeft);
+        setAnswers(paused.answers || {});
+        setCurrentQuestionIndex(paused.currentQuestionIndex || 0);
+      } else {
+        setTimeLeft(test.timeDuration * 60);
+      }
 
-    const paused = JSON.parse(localStorage.getItem("pausedTest"));
-    if (isResume && paused?.timeLeft) {
-      setTimeLeft(paused.timeLeft);
-      setAnswers(paused.answers || {});
-      setCurrentQuestionIndex(paused.currentQuestionIndex || 0);
-    } else {
-      setTimeLeft(test.timeDuration * 60);
-    }
-
-    // Only try to enter fullscreen on non-mobile devices
-    if (window.innerWidth > 768 && isFullscreenAvailable()) {
-      const elem = document.documentElement;
-      if (!document.fullscreenElement) {
-        elem.requestFullscreen?.().catch((err) =>
-          console.error("Failed to enter full screen:", err)
-        );
+      if (window.innerWidth > 768 && isFullscreenAvailable()) {
+        const elem = document.documentElement;
+        if (!document.fullscreenElement) {
+          elem.requestFullscreen?.().catch((err) =>
+            console.error("Failed to enter full screen:", err)
+          );
+        }
       }
     }
-  }
-}, [tests, id, isResume]);
-
+  }, [tests, id, isResume]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -113,24 +140,13 @@ const Test = () => {
   }, []);
 
   useEffect(() => {
+    if (isFullscreenAvailable()) {
+      toggleFullScreen();
+    }
+
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
-        setIsPaused(true);
-
-        // Save pause state to localStorage
-        localStorage.setItem(
-          "pausedTest",
-          JSON.stringify({
-            testId: currentTest._id,
-            exam,
-            mockTest: window.location.pathname.split("/")[2],
-            timeLeft,
-            answers,
-            currentQuestionIndex,
-          })
-        );
-
-        pauseModalInstanceRef.current?.show();
+      if (!document.fullscreenElement && !isTestPaused) {
+        handlePauseTest();
       }
     };
 
@@ -138,14 +154,13 @@ const Test = () => {
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
-  }, [timeLeft, answers, currentQuestionIndex, currentTest, exam]);
+  }, []);
 
   useEffect(() => {
     if (timeLeft <= 0) {
       handleSubmit();
       return;
     }
-
     if (isPaused) return;
 
     const timer = setInterval(() => {
@@ -163,13 +178,33 @@ const Test = () => {
   };
 
   const handleOptionChange = (e) => {
-    setAnswers({
-      ...answers,
+    setAnswers((prevAnswers) => ({
+      ...prevAnswers,
       [currentQuestionIndex]: e.target.value,
-    });
+    }));
+
+    if (skippedQuestions.has(currentQuestionIndex)) {
+      const newSkipped = new Set(skippedQuestions);
+      newSkipped.delete(currentQuestionIndex);
+      setSkippedQuestions(newSkipped);
+    }
   };
 
   const handleNext = () => {
+    const newVisited = new Set(visitedQuestions);
+    newVisited.add(currentQuestionIndex);
+    setVisitedQuestions(newVisited);
+
+    if (!answers[currentQuestionIndex]) {
+      const newSkipped = new Set(skippedQuestions);
+      newSkipped.add(currentQuestionIndex);
+      setSkippedQuestions(newSkipped);
+    } else {
+      const newSkipped = new Set(skippedQuestions);
+      newSkipped.delete(currentQuestionIndex);
+      setSkippedQuestions(newSkipped);
+    }
+
     if (currentQuestionIndex < currentTest.questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
@@ -181,35 +216,79 @@ const Test = () => {
     }
   };
 
-const isFullscreenAvailable = () => {
-  return (
-    document.fullscreenEnabled ||
-    document.webkitFullscreenEnabled ||
-    document.mozFullScreenEnabled ||
-    document.msFullscreenEnabled
-  );
-};
+  const handleSkipQuestion = () => {
+    const newSkipped = new Set(skippedQuestions);
+    newSkipped.add(currentQuestionIndex);
+    setSkippedQuestions(newSkipped);
+    handleNext();
+  };
 
-const toggleFullScreen = () => {
-  const elem = document.documentElement;
-  if (!isFullscreenAvailable()) {
-    alert("Fullscreen is not supported on this device.");
-    return;
-  }
+  const isFullscreenAvailable = () => {
+    return (
+      document.fullscreenEnabled ||
+      document.webkitFullscreenEnabled ||
+      document.mozFullScreenEnabled ||
+      document.msFullscreenEnabled
+    );
+  };
 
-  if (!document.fullscreenElement) {
-    elem.requestFullscreen?.()
-      || elem.webkitRequestFullscreen?.()
-      || elem.mozRequestFullScreen?.()
-      || elem.msRequestFullscreen?.();
-  } else {
-    document.exitFullscreen?.()
-      || document.webkitExitFullscreen?.()
-      || document.mozCancelFullScreen?.()
-      || document.msExitFullscreen?.();
-  }
-};
+  const toggleFullScreen = () => {
+    const elem = document.documentElement;
+    if (!isFullscreenAvailable()) {
+      alert("Fullscreen is not supported on this device.");
+      return;
+    }
 
+    if (!document.fullscreenElement) {
+      elem.requestFullscreen?.() ||
+        elem.webkitRequestFullscreen?.() ||
+        elem.mozRequestFullScreen?.() ||
+        elem.msRequestFullscreen?.();
+    } else {
+      document.exitFullscreen?.() ||
+        document.webkitExitFullscreen?.() ||
+        document.mozCancelFullScreen?.() ||
+        document.msExitFullscreen?.();
+    }
+  };
+
+  const handlePauseTest = () => {
+    setShowConfirmDialog(true);
+  };
+
+  const confirmPause = () => {
+    setIsTestPaused(true);
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    }
+    localStorage.setItem(
+      "pausedTest",
+      JSON.stringify({
+        testId: currentTest._id,
+        exam,
+        mockTest: selectedMockTest,
+        timeLeft,
+        answers,
+        currentQuestionIndex,
+      })
+    );
+    setShowConfirmDialog(false);
+  };
+
+  const handleResumeTest = () => {
+    setIsTestPaused(false);
+    if (isFullscreenAvailable()) {
+      toggleFullScreen();
+    }
+  };
+
+  const getQuestionStatusClass = (idx) => {
+    if (currentQuestionIndex === idx) return "active";
+    if (answers[idx]) return "answered";
+    if (skippedQuestions.has(idx)) return "skipped";
+    if (visitedQuestions.has(idx)) return "visited";
+    return "";
+  };
 
   if (error) {
     return <p style={{ color: "red" }}>❌ Failed to load test: {error}</p>;
@@ -219,186 +298,211 @@ const toggleFullScreen = () => {
     return <p>Loading test...</p>;
   }
 
-  const question = currentTest.questions[currentQuestionIndex];
-  const selected = answers[currentQuestionIndex] || "";
-
   return (
     <Fragment>
-    <MetaData title={`${currentTest.title} - Test`} />
-      <div className="test-body">
-        {isPaused && (
-          <div className="resume-container">
-            <div className="resume-content">
-              <p className="resume-text">
-                You have paused the test. Resume to continue.
-              </p>
-              <button
-                className="resume-btn"
-                onClick={() => {
-                  setIsPaused(false);
-                  const elem = document.documentElement;
-                  if (!document.fullscreenElement) {
-                    elem
-                      .requestFullscreen()
-                      .catch((err) =>
-                        console.error("Failed to re-enter full screen:", err)
-                      );
-                  }
-                }}
-              >
-                Resume
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="test-head">
-          <div className="test-name">
-            <p>{currentTest.title}</p>
-          </div>
-          <div className="timeleft">
-            <p>Time left {formatTime(timeLeft)}</p>
-          </div>
-          <div className="full-button">
+      <MetaData title={"Test"} />
+      {isTestPaused ? (
+        <div className="paused-test-overlay">
+          <div className="pause-content">
+            <h2>
+              <i className="fas fa-pause-circle"></i>
+              Test Paused
+            </h2>
+            <p>
+              Your test progress has been saved successfully.
+              <br /><br />
+              When you resume, you'll continue from exactly where you left off.
+              <br />
+              All your answers and remaining time will be preserved.
+            </p>
             <button
-              className="pause-btn"
-              onClick={(e) => {
-                e.preventDefault();
-                pauseModalInstanceRef.current?.show();
-              }}
+              className="btn btn-primary btn-lg"
+              onClick={handleResumeTest}
             >
-              Pause
-            </button>
-
-            <button className="full-btn" onClick={toggleFullScreen}>
-              Enter Full Screen
+              <i className="fas fa-play"></i>
+              Resume Test Now
             </button>
           </div>
         </div>
+      ) : (
+        <div className="test-container-fullscreen">
+          {currentTest && currentTest.questions && (
+            <div className="test-layout">
+              {/* Main question area */}
+              <div className="question-area">
+                <div className="test-content">
+                  {/* Header with timer and pause button */}
+                  <div className="test-header">
+                    <div className="header-content">
+                      <h5 className="question-number">Question {currentQuestionIndex + 1}</h5>
+                      <div className="header-controls">
+                        <div className="timer">
+                          Time Left: {formatTime(timeLeft)}
+                        </div>
+                        <button 
+                          className="btn btn-outline-warning"
+                          onClick={handlePauseTest}
+                        >
+                          <i className="fas fa-pause"></i> Pause Test
+                        </button>
+                      </div>
+                    </div>
+                  </div>
 
-        <div className="test-content">
-          <div className="test-section">
-            <div className="ques">
-              <p>Question No. {currentQuestionIndex + 1}</p>
-            </div>
-            <div className="section-marks">
-              <div className="correct">
-                <p>Correct</p>
-                <p>+{currentTest.marksCorrect}</p>
-              </div>
-              <div className="incorrect">
-                <p>Incorrect</p>
-                <p>-{currentTest.marksWrong}</p>
-              </div>
-            </div>
-          </div>
+                  {/* Question content */}
+                  <div className="question-container">
+                    <div className="question-content">
+                      <div className="question-text" style={{ whiteSpace: 'pre-line' }}>
+                        {currentTest.questions[currentQuestionIndex].questionText.split('\n').map((line, index) => (
+                          <p key={index} className={index === 0 ? 'main-question' : 'sub-question'}>
+                            {line}
+                          </p>
+                        ))}
+                      </div>
 
-          <div className="test-question">
-            <div className="question">
-              <p>{question.questionText}</p>
-            </div>
-            <div className="test-options">
-              {question.options.map((option, idx) => (
-                <div key={idx}>
-                  <label>
-                    <input
-                      type="radio"
-                      name={`question-${currentQuestionIndex}`}
-                      value={option}
-                      checked={selected === option}
-                      onChange={handleOptionChange}
-                    />
-                    <span>{option}</span>
-                  </label>
+                      <div className="options-grid">
+                        {currentTest.questions[currentQuestionIndex].options.map((option, idx) => (
+                          <div key={idx} className="option-item">
+                            <input
+                              type="radio"
+                              name={`question${currentQuestionIndex}`}
+                              id={`option${idx}`}
+                              value={option}
+                              checked={answers[currentQuestionIndex] === option}
+                              onChange={handleOptionChange}
+                            />
+                            <label htmlFor={`option${idx}`}>
+                              {option}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Navigation buttons */}
+                  <div className="navigation-buttons">
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => setCurrentQuestionIndex(currentQuestionIndex - 1)}
+                      disabled={currentQuestionIndex === 0}
+                    >
+                      <i className="fas fa-arrow-left me-2"></i>
+                      Previous
+                    </button>
+                    {currentQuestionIndex === currentTest.questions.length - 1 ? (
+                      <button
+                        className="btn btn-primary"
+                        onClick={handleSubmit}
+                      >
+                        <i className="fas fa-check-circle me-2"></i>
+                        Submit Test
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-primary"
+                        onClick={handleNext}
+                      >
+                        Next
+                        <i className="fas fa-arrow-right ms-2"></i>
+                      </button>
+                    )}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
+              </div>
 
-        <div className="test-submit">
-          <div className="test-save">
-            <button
-              onClick={handlePrevious}
-              disabled={currentQuestionIndex === 0}
-            >
-              Previous Question
-            </button>
-            <button
-              onClick={handleNext}
-              disabled={
-                currentQuestionIndex === currentTest.questions.length - 1
-              }
-            >
-              Save & Next
-            </button>
-          </div>
-          <div className="test-save">
-            <button
-              className="submit-btn btn btn-success"
-              onClick={handleSubmit}
-            >
-              Submit
-            </button>
-          </div>
+              {/* Question palette */}
+              <div className="question-palette-area">
+                <div className="palette-content">
+                  <h5 className="palette-title">Question Palette</h5>
+                  <div className="palette-legend">
+                    <div className="legend-item">
+                      <span className="legend-color answered"></span>
+                      <span>Answered</span>
+                    </div>
+                    <div className="legend-item">
+                      <span className="legend-color skipped"></span>
+                      <span>Not Answered</span>
+                    </div>
+                    <div className="legend-item">
+                      <span className="legend-color visited"></span>
+                      <span>Visited</span>
+                    </div>
+                    <div className="legend-item">
+                      <span className="legend-color"></span>
+                      <span>Not Visited</span>
+                    </div>
+                  </div>
+                  <div className="question-grid">
+                    {currentTest.questions.map((_, idx) => (
+                      <button
+                        key={idx}
+                        className={`palette-btn ${getQuestionStatusClass(idx)}`}
+                        onClick={() => setCurrentQuestionIndex(idx)}
+                      >
+                        {idx + 1}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
-      {/* Pause Modal */}
-      <div
-        className="modal fade"
-        id="pauseConfirmModal"
-        tabIndex="-1"
-        aria-labelledby="pauseConfirmModalLabel"
-        aria-hidden="true"
-        ref={pauseModalRef}
-      >
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header bg-dark text-dark">
-              <h5
-                className="modal-title text-white"
-                id="pauseConfirmModalLabel"
-              >
-                Pause Test?
-              </h5>
-              <button
-                type="button"
-                className="btn-close"
-                style={{ filter: "invert(1)", opacity: 1 }}
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              />
-            </div>
-            <div className="modal-body">
-              Are you sure you want to pause the test? Timer will stop and
-              questions will be hidden.
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-light"
-                data-bs-dismiss="modal"
-              >
-                No
-              </button>
-              <button
-                type="button"
-                className="btn btn-dark"
-                onClick={() => {
-                  setIsPaused(true);
-                  pauseModalInstanceRef.current?.hide();
-                  if (document.fullscreenElement) {
-                    document.exitFullscreen();
-                  }
-                }}
-              >
-                Yes, Pause
-              </button>
+      {/* Pause Confirmation Modal */}
+      {showConfirmDialog && (
+        <div className="modal-overlay">
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  <i className="fas fa-pause-circle"></i>
+                  Pause Test
+                </h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={() => setShowConfirmDialog(false)}
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div className="modal-body">
+                <p>
+                  Would you like to pause your test?
+                  <br /><br />
+                  Don't worry - we'll save your progress automatically:
+                  <br />
+                  • All your answers will be saved
+                  <br />
+                  • Your remaining time will be preserved
+                  <br />
+                  • You can resume exactly where you left off
+                </p>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => setShowConfirmDialog(false)}
+                >
+                  <i className="fas fa-arrow-left"></i>
+                  Continue Test
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-primary" 
+                  onClick={confirmPause}
+                >
+                  <i className="fas fa-pause"></i>
+                  Pause Now
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </Fragment>
   );
 };

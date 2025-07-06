@@ -17,7 +17,7 @@ try {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <HelmetProvider>
-            <App />
+    <App />
           </HelmetProvider>
         </PersistGate>
       </Provider>

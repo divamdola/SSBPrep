@@ -23,9 +23,13 @@ const MockList = () => {
     }
   }, [dispatch, selectedExam]);
 
+  const formatScore = (score) => {
+    return Number(score || 0).toFixed(2);
+  };
+
   return (
     <Fragment>
-        <MetaData title={`${selectedExam}`} />
+      <MetaData title={`${selectedExam}`} />
       <div className="head-home mock-test">
         <h1>
           {selectedMockTest?.toLowerCase() === "dpp"
@@ -47,13 +51,17 @@ const MockList = () => {
                 pausedTest?.exam === selectedExam &&
                 pausedTest?.mockTest === selectedMockTest;
 
-                const attemptedTest = attempts?.find((a) => a.test?.toString() === test._id);
+              const attemptedTest = attempts?.find((a) => a.test?.toString() === test._id);
 
               return (
                 <div className="mock-container" key={test._id}>
                   <p>{test.title}</p>
                   {attemptedTest && (
-                    <p style={{ marginBottom: "8px" }}>Score: {attemptedTest.score}</p>
+                    <div className="test-score">
+                      <p style={{ marginBottom: "8px" }}>
+                        Score: <span className="score-value">{formatScore(attemptedTest.score)}</span>
+                      </p>
+                    </div>
                   )}
 
                   <button
