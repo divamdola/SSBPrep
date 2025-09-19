@@ -9,13 +9,14 @@ import {
 import { UPDATE_PRODUCT_RESET } from "../../constants/adminConstants";
 import { clearError } from "../../actions/userActions";
 import MetaData from "../layouts/MetaData";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const EditBooks = () => {
   const dispatch = useDispatch();
 
   const [booksByCategory, setBooksByCategory] = useState({});
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
   const [editingBook, setEditingBook] = useState(null);
   const [editForm, setEditForm] = useState({ title: "", url: "", pdfUrl: "" });
 
@@ -31,7 +32,9 @@ const EditBooks = () => {
     checked: false,
   });
 
-  const { error, updateSuccess, loading: updateLoading } = useSelector((state) => state.admin);
+  const { error, updateSuccess, loading: updateLoading } = useSelector(
+    (state) => state.admin
+  );
 
   const refetchBooks = async () => {
     try {
@@ -42,6 +45,7 @@ const EditBooks = () => {
       }
     } catch (err) {
       console.error("Error fetching books:", err);
+      toast.error("Failed to fetch books ❌");
     } finally {
       setLoading(false);
     }
@@ -86,9 +90,8 @@ const EditBooks = () => {
 
   useEffect(() => {
     if (updateSuccess) {
-      setMessage("Book updated successfully ✅");
+      toast.success("Book updated successfully ✅");
       refetchBooks();
-      setTimeout(() => setMessage(""), 3000);
       dispatch({ type: UPDATE_PRODUCT_RESET });
     }
   }, [updateSuccess, dispatch]);
@@ -150,15 +153,13 @@ const EditBooks = () => {
       checked: false,
     });
 
-    setMessage("Book added successfully ✅");
-    setTimeout(() => setMessage(""), 3000);
+    toast.success("Book added successfully ✅");
   };
 
   useEffect(() => {
     if (error) {
-      setTimeout(() => {
-        dispatch(clearError());
-      }, 3000);
+      toast.error(error);
+      dispatch(clearError());
     }
   }, [error, dispatch]);
 
@@ -166,8 +167,7 @@ const EditBooks = () => {
     if (window.confirm("Are you sure you want to delete this book?")) {
       await dispatch(deleteProduct(productId));
       refetchBooks();
-      setMessage("Book deleted successfully ✅");
-      setTimeout(() => setMessage(""), 3000);
+      toast.info("Book deleted successfully 🗑️");
     }
   };
 
@@ -179,18 +179,17 @@ const EditBooks = () => {
 
   return (
     <Fragment>
-        <MetaData title={"Edit Books - Admin"} />
+      <MetaData title={"Edit Books - Admin"} />
       <div className="container-fluid px-0 mt-4">
-        {message && <p className="alert alert-success">{message}</p>}
-        {error && <p className="text-danger">Error: {error}</p>}
-
         {loading ? (
           <p>Loading books...</p>
         ) : Object.keys(booksByCategory).length > 0 ? (
           Object.entries(booksByCategory).map(([category, books], index) => (
             <div
               key={category}
-              className={`mb-5 p-4 rounded ${index % 2 !== 0 ? "bg-light" : "bg-white"}`}
+              className={`mb-5 p-4 rounded ${
+                index % 2 !== 0 ? "bg-light" : "bg-white"
+              }`}
             >
               <h4 className="mt-5 fs-2 text-center h3-exam">
                 {examFullNames[category] || category}
@@ -201,7 +200,9 @@ const EditBooks = () => {
 
                   return (
                     <div
-                      className={`card d-flex flex-column ${isEditing ? "border-warning" : ""}`}
+                      className={`card d-flex flex-column ${
+                        isEditing ? "border-warning" : ""
+                      }`}
                       style={{ width: "16rem", minHeight: "100%" }}
                       key={book._id}
                     >
@@ -222,7 +223,9 @@ const EditBooks = () => {
                               onChange={handleEditChange}
                               className="form-control mb-2"
                             />
-                            <label className="form-label fw-bold">Image URL</label>
+                            <label className="form-label fw-bold">
+                              Image URL
+                            </label>
                             <input
                               type="text"
                               name="url"
@@ -230,7 +233,9 @@ const EditBooks = () => {
                               onChange={handleEditChange}
                               className="form-control mb-2"
                             />
-                            <label className="form-label fw-bold">PDF URL</label>
+                            <label className="form-label fw-bold">
+                              PDF URL
+                            </label>
                             <input
                               type="text"
                               name="pdfUrl"
@@ -288,6 +293,7 @@ const EditBooks = () => {
         )}
       </div>
 
+      {/* Add Book Form */}
       <div className="container bg-body-tertiary p-4 rounded-top">
         <h2 className="text-dark-emphasis m-4">Add Book</h2>
         <form className="row g-3" onSubmit={handleSubmit}>
@@ -452,4 +458,4 @@ const EditBooks = () => {
   );
 };
 
-export default EditBooks; 
+export default EditBooks;

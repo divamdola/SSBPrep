@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";   // ✅ import css
 
 import { persistor } from "./store";
 import MainLayout from "./components/layouts/MainLayouts.jsx";
@@ -42,7 +44,11 @@ function App() {
   };
 
   return (
-    <PersistGate loading={<h1>Loading...</h1>} persistor={persistor} onBeforeLift={handleBeforeLift}>
+    <PersistGate
+      loading={<h1>Loading...</h1>}
+      persistor={persistor}
+      onBeforeLift={handleBeforeLift}
+    >
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -50,6 +56,7 @@ function App() {
           <Route path="/" element={<MainLayout><Home /></MainLayout>} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/password/reset/:token" element={<NewPassword />} />
+
           {/* Protected Routes */}
           <Route
             path="/timeline"
@@ -63,7 +70,7 @@ function App() {
             path="/:exam"
             element={user ? <MainLayout><Exams /></MainLayout> : <Navigate to="/login" />}
           />
-           <Route
+          <Route
             path="/:exam/:mockTest"
             element={user ? <MainLayout><MockList /></MainLayout> : <Navigate to="/login" />}
           />
@@ -75,7 +82,7 @@ function App() {
             path="/:exam/:mockTest/test/solutions/:id"
             element={user ? <Solutions /> : <Navigate to="/login" />}
           />
-           <Route
+          <Route
             path="/study-material"
             element={user ? <MainLayout><StudyMaterial /></MainLayout> : <Navigate to="/login" />}
           />
@@ -108,6 +115,18 @@ function App() {
             element={user && user.role === "admin" ? <MainLayout><ViewReports /></MainLayout> : <Navigate to="/login" />}
           />
         </Routes>
+
+        {/* ✅ Toastify container mounted once */}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          pauseOnHover
+          draggable
+          theme="colored"
+        />
       </BrowserRouter>
     </PersistGate>
   );

@@ -2,6 +2,7 @@ import React, { Fragment} from "react";
 import { useNavigate } from "react-router-dom";
 import MetaData from "./layouts/MetaData";
 
+
 const Home = () => {
   const navigate=useNavigate();
 

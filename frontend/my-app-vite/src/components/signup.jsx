@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import MetaData from "./layouts/MetaData";
 import { useDispatch, useSelector } from "react-redux";
 import { register, clearError } from "../actions/userActions";
+import { toast } from "react-toastify";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -16,18 +17,17 @@ const Signup = () => {
 
   const { name, email, password } = user;
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [alertMessage, setAlertMessage] = useState(null); // ✅ State for Bootstrap alert
 
   const { isAuthenticated, error } = useSelector((state) => state.auth);
 
   useEffect(() => {
     if (isAuthenticated) {
-      setAlertMessage({ type: "success", text: "Registration successful! 🎉 Redirecting..." });
+      toast.success("Registration successful! 🎉 Redirecting...");
       setTimeout(() => navigate("/"), 2000); // Redirect after 2s
     }
 
     if (error) {
-      setAlertMessage({ type: "danger", text: error });
+      toast.error(error);
       dispatch(clearError());
     }
   }, [dispatch, isAuthenticated, error, navigate]);
@@ -44,7 +44,7 @@ const Signup = () => {
     e.preventDefault();
 
     if (!termsAccepted) {
-      setAlertMessage({ type: "warning", text: "Please accept the terms & conditions." });
+      toast.warning("Please accept the terms & conditions.");
       return;
     }
 
@@ -65,14 +65,11 @@ const Signup = () => {
             <div className="card p-4 shadow">
               <h2 className="text-center">Registration</h2>
 
-              {/* ✅ Bootstrap Alert */}
-              {alertMessage && (
-                <div className={`alert alert-${alertMessage.type} text-center`} role="alert">
-                  {alertMessage.text}
-                </div>
-              )}
-
-              <form className="form-signup" onSubmit={submitHandler} encType="multipart/form-data">
+              <form
+                className="form-signup"
+                onSubmit={submitHandler}
+                encType="multipart/form-data"
+              >
                 <div className="mb-3">
                   <input
                     type="text"
@@ -125,7 +122,8 @@ const Signup = () => {
                 </div>
                 <div className="text-center mt-3">
                   <p>
-                    Already have an account? <Link to={"/login"}>Login now</Link>
+                    Already have an account?{" "}
+                    <Link to={"/login"}>Login now</Link>
                   </p>
                 </div>
               </form>
@@ -137,4 +135,4 @@ const Signup = () => {
   );
 };
 
-export default Signup; 
+export default Signup;

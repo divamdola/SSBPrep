@@ -3,12 +3,13 @@ import { useNavigate, Link } from "react-router-dom";
 import "../../App.css";
 import { logout } from "../../actions/userActions";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, loading } = useSelector((state) => state.auth);
-  const [alertMessage, setAlertMessage] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -17,8 +18,7 @@ const Header = () => {
 
   const logoutHandler = () => {
     dispatch(logout());
-    setAlertMessage("Logged out successfully!");
-    setTimeout(() => setAlertMessage(""), 3000);
+    toast.success("Logged out successfully! 👋");
     navigate("/");
   };
 
@@ -40,11 +40,6 @@ const Header = () => {
 
   return (
     <Fragment>
-      {/* Alert message */}
-      {alertMessage && (
-        <div className="alert alert-success">{alertMessage}</div>
-      )}
-
       <div className="header">
         {/* Menu button - hide for admin */}
         {user?.role !== "admin" && (
@@ -123,4 +118,4 @@ const Header = () => {
   );
 };
 
-export default Header; 
+export default Header;

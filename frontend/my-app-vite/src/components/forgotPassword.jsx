@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { forgotPassword } from "../actions/userActions";
 import { CLEAR_ERRORS } from "../constants/userConstants";
 import MetaData from "./layouts/MetaData";
+import { toast } from "react-toastify";
 
 const ForgotPassword = () => {
   const dispatch = useDispatch();
@@ -19,6 +20,7 @@ const ForgotPassword = () => {
 
   useEffect(() => {
     if (message) {
+      toast.success(message); // ✅ Success toast
       setEmail("");
       setTimeout(() => {
         dispatch({ type: CLEAR_ERRORS });
@@ -26,6 +28,7 @@ const ForgotPassword = () => {
     }
 
     if (error) {
+      toast.error(error); // ❌ Error toast
       setTimeout(() => {
         dispatch({ type: CLEAR_ERRORS });
       }, 3000);
@@ -40,18 +43,6 @@ const ForgotPassword = () => {
           <div className="col-md-6">
             <div className="card p-4 shadow">
               <h2 className="text-center">Forgot Password</h2>
-
-              {message && (
-                <div className="alert alert-success text-center" role="alert">
-                  {message}
-                </div>
-              )}
-
-              {error && (
-                <div className="alert alert-danger text-center" role="alert">
-                  {error}
-                </div>
-              )}
 
               <form onSubmit={submitHandler}>
                 <div className="mb-3">
@@ -82,4 +73,4 @@ const ForgotPassword = () => {
   );
 };
 
-export default ForgotPassword; 
+export default ForgotPassword;
