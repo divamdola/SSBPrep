@@ -15,6 +15,7 @@ import ToppersHall from "./components/toppershall.jsx";
 import ForgotPassword from "./components/forgotPassword.jsx";
 import NewPassword from "./components/newPassword.jsx";
 import Test from "./components/test.jsx";
+import Solutions from "./components/solutions.jsx";
 
 import { loadUser } from "./actions/userActions";
 import MockList from "./components/mockList.jsx";
@@ -69,6 +70,10 @@ function App() {
           <Route
             path="/:exam/:mockTest/test/result/:id"
             element={user ? <Result /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/:exam/:mockTest/test/solutions/:id"
+            element={user ? <Solutions /> : <Navigate to="/login" />}
           />
            <Route
             path="/study-material"

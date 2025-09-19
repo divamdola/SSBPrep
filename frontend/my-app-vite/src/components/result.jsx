@@ -89,7 +89,7 @@ const Result = () => {
           </button>
           <button
             className="btn btn-secondary"
-            onClick={() => navigate(`/test/solutions/${results?.test?._id}`)}
+            onClick={() => navigate(`/${exam}/${mockTest}/test/solutions/${results?.test?._id}`)}
           >
             Solutions
           </button>

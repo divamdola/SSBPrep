@@ -27,6 +27,8 @@ const Test = () => {
   const [skippedQuestions, setSkippedQuestions] = useState(new Set());
   const [visitedQuestions, setVisitedQuestions] = useState(new Set([0]));
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showTimeWarning, setShowTimeWarning] = useState(false);
+  const autoSubmitTimeoutRef = useRef(null);
 
   const pauseModalRef = useRef(null);
   const pauseModalInstanceRef = useRef(null);
@@ -35,12 +37,17 @@ const Test = () => {
   const selectedMockTest = location.state?.selectedMockTest || mockTest;
   const isResume = location.state?.isResume;
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(async (isAutoSubmit = false) => {
     if (!currentTest || !currentTest.questions) return;
     if (isSubmitting) return;
 
     try {
       setIsSubmitting(true);
+
+      // Clear any existing auto-submit timeout
+      if (autoSubmitTimeoutRef.current) {
+        clearTimeout(autoSubmitTimeoutRef.current);
+      }
 
       // Format answers according to the schema
       const formattedAnswers = currentTest.questions.map((question, index) => {
@@ -57,6 +64,11 @@ const Test = () => {
         answers: formattedAnswers,
         timeTaken: currentTest.timeDuration * 60 - timeLeft
       };
+
+      // If it's an auto-submit, show an alert
+      if (isAutoSubmit) {
+        alert("Time's up! Your test is being submitted automatically.");
+      }
 
       // Submit test
       const submitResponse = await dispatch(submitTest(payload));
@@ -158,17 +170,45 @@ const Test = () => {
 
   useEffect(() => {
     if (timeLeft <= 0) {
-      handleSubmit();
+      handleSubmit(true);
       return;
     }
+
+    // Show warning when 5 minutes are left
+    if (timeLeft === 300 && !showTimeWarning) {
+      setShowTimeWarning(true);
+      alert("⚠️ 5 minutes remaining!");
+    }
+    // Show warning when 1 minute is left
+    else if (timeLeft === 60 && !showTimeWarning) {
+      setShowTimeWarning(true);
+      alert("⚠️ 1 minute remaining!");
+    }
+    // Reset warning flag when time changes
+    else if (timeLeft !== 300 && timeLeft !== 60) {
+      setShowTimeWarning(false);
+    }
+
     if (isPaused) return;
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => prev - 1);
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [timeLeft, isPaused, handleSubmit]);
+    // Set up auto-submit 5 seconds before time ends
+    if (timeLeft === 5) {
+      autoSubmitTimeoutRef.current = setTimeout(() => {
+        handleSubmit(true);
+      }, 5000);
+    }
+
+    return () => {
+      clearInterval(timer);
+      if (autoSubmitTimeoutRef.current) {
+        clearTimeout(autoSubmitTimeoutRef.current);
+      }
+    };
+  }, [timeLeft, isPaused, handleSubmit, showTimeWarning]);
 
   const formatTime = (seconds) => {
     const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
