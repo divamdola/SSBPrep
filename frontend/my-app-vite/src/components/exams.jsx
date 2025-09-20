@@ -96,7 +96,7 @@ const Exams = () => {
           <div className="roadmap">
             <h1>View Complete Procedure of SSB</h1>
             <div className="button">
-              <a href="/timeline" target="_blank" rel="noopener noreferrer">
+              <a href="/timeline" rel="noopener noreferrer">
                 <button>
                   <img src="/images/eye.svg" alt="eye" />
                   View
