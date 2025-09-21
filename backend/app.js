@@ -19,6 +19,7 @@ app.use(
   })
 );
 
+app.use(express.static(path.join(__dirname, "../client/dist")));
 app.use(express.json()); // ✅ Parse JSON
 app.use(express.urlencoded({ extended: true })); // ✅ Parse URL-encoded data
 app.use(upload.none()); // ✅ Parse form-data (multipart)
@@ -41,6 +42,9 @@ app.use("/api/v1", products);
 app.use("/api/v1", auth);
 app.use("/api/v1/order", order);
 
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "../client/dist", "index.html"));
+});
 // Middleware to handle errors
 app.use(errorMiddleware);
 
