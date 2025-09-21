@@ -6,6 +6,7 @@ const errorMiddleware = require("./middlewares/errors");
 const cloudinary = require("cloudinary");
 const cors = require("cors");
 const multer = require("multer");
+const path = require("path");
 
 const upload = multer(); // ✅ Multer to handle form-data
 
