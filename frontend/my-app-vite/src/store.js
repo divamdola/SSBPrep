@@ -1,8 +1,8 @@
-import { configureStore } from "@reduxjs/toolkit";
+﻿import { configureStore } from "@reduxjs/toolkit";
 import storage from "redux-persist/lib/storage";
 import { persistStore, persistReducer } from "redux-persist";
 import { combineReducers } from "redux";
-import {thunk} from "redux-thunk";
+import thunk from "redux-thunk";
 
 import { authReducer, forgotPasswordReducer } from "./reducers/userReducer";
 import { productsReducer } from "./reducers/productsReducer";
@@ -34,13 +34,13 @@ const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"], // ✅ Ignore these actions
+        ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"], //  Ignore these actions
       },
-    }).concat(thunk), // ✅ Correct import
+    }).concat(thunk), //  Correct import
   devTools: import.meta.env.MODE !== "production", // Updated for Vite
 });
 
 // Create persistor
 export const persistor = persistStore(store);
 
-export default store; 
+export default store;
