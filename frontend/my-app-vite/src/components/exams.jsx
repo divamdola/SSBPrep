@@ -1,8 +1,7 @@
 import React, { Fragment, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { getProducts } from "../actions/productActions";
-import { useLocation } from "react-router-dom";
 import MetaData from "./layouts/MetaData";
 
 const Exams = () => {
@@ -10,77 +9,90 @@ const Exams = () => {
   const selectedExam = location.state?.selectedExam || "Unknown";
   const dispatch = useDispatch();
 
-  const { products} = useSelector(
-    (state) => state.products
-  );
+  const { products } = useSelector((state) => state.products);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     if (selectedExam !== "Unknown") {
-      dispatch(getProducts());
+      dispatch(getProducts(selectedExam));
+      window.scrollTo(0, 0);
     }
   }, [dispatch, selectedExam]);
 
-  const handleExamClick = (exam) => {
-    navigate(`/${exam}`, {
-      state: { selectedExam: exam },
-    });
-  };
-
   return (
     <Fragment>
-      <MetaData title={"Exams"} />
-      <div className="container-fluid">
-        <div className="row">
-          <div className="col-12">
-            <div className="exam-header">
-              <h1>{selectedExam} Exams</h1>
-              <p>Choose your exam and start your preparation</p>
+      <MetaData title={`${selectedExam}`} />
+      <div className="head-exam">
+        <h1>
+          {selectedExam === "SSB"
+            ? "Services Selection Board"
+            : selectedExam === "NDA"
+            ? "National Defence Academy"
+            : "Combined Defence Examination"}
+        </h1>
+      </div>
+
+      <div className="books-exam">
+        <div className="h3-exam">Books</div>
+        <div className="source-exam">
+          {Array.isArray(products) && products.length > 0 ? (
+            products.map((product) => (
+              <div className="b1-exam" key={product._id}>
+                <a
+                  href={product.images?.[0]?.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <img src={product.images?.[0]?.url} alt="Book" />
+                </a>
+              </div>
+            ))
+          ) : (
+            <p>Loading products...</p>
+          )}
+        </div>
+        <p className="scroll">
+          Scroll for more <img src="/images/more.svg" alt="more" />
+        </p>
+      </div>
+
+      {selectedExam !== "SSB" ? (
+        <div className="extra-exam">
+          <div className="h3-exam">Let's Do Some Revision!!!</div>
+          <div className="test-series-exam">
+            <div
+              className="extra1-exam"
+              onClick={() =>
+                navigate(`/${selectedExam}/DPP`, {
+                  state: {
+                    selectedMockTest: "DPP",
+                    selectedExam: selectedExam,
+                  },
+                })
+              }
+            >
+              <img src="/images/Dppsvg.svg" alt="DPP" />
+              <p>Daily Practice Paper (DPP)</p>
+            </div>
+
+            <div
+              className="extra1-exam"
+              onClick={() =>
+                navigate(`/${selectedExam}/full-mock-test`, {
+                  state: {
+                    selectedMockTest: "full-mock-test",
+                    selectedExam: selectedExam,
+                  },
+                })
+              }
+            >
+              <img src="/images/Mocksvg.svg" alt="Mock Test" />
+              <p>Full Mock Test</p>
             </div>
           </div>
         </div>
-
-        <div className="row">
-          <div className="col-12">
-            <div className="exam-cards">
-              {products &&
-                products.map((product) => (
-                  <div key={product._id} className="exam-card">
-                    <div className="card-header">
-                      <h3>{product.name}</h3>
-                      <p>{product.description}</p>
-                    </div>
-                    <div className="card-body">
-                      <div className="exam-stats">
-                        <div className="stat">
-                          <span className="stat-number">{product.numOfTests}</span>
-                          <span className="stat-label">Tests</span>
-                        </div>
-                        <div className="stat">
-                          <span className="stat-number">{product.timeDuration}</span>
-                          <span className="stat-label">Minutes</span>
-                        </div>
-                        <div className="stat">
-                          <span className="stat-number">{product.questions}</span>
-                          <span className="stat-label">Questions</span>
-                        </div>
-                      </div>
-                      <div className="card-actions">
-                        <button
-                          className="btn btn-primary"
-                          onClick={() => handleExamClick(product.name)}
-                        >
-                          Start Exam
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-        </div>
-
+      ) : (
         <>
           <div className="roadmap">
             <h1>View Complete Procedure of SSB</h1>
@@ -93,8 +105,21 @@ const Exams = () => {
               </Link>
             </div>
           </div>
+
+          <div className="day-1">
+            <div className="h3-exam">Screening Test</div>
+            {/* 
+            <div className="h3" style={{ paddingTop: "30px" }}>
+              OIR
+            </div>
+            <div className="dices">
+              <div className="material"></div>
+            </div>
+            <p className="scroll">Scroll for more</p>
+            */}
+          </div>
         </>
-      </div>
+      )}
     </Fragment>
   );
 };
