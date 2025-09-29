@@ -1,6 +1,13 @@
 ﻿import axios from "axios";
 
+
 const API_URL = import.meta.env.VITE_API_URL || "https://ssbprep.onrender.com/api/v1";
+// const API_URL =
+//   process.env.REACT_APP_API_URL ||
+//   (window.location.hostname === "localhost"
+//     ? "http://localhost:4000/api/v1"
+//     // : "http://192.168.152.116/api/v1");
+//     :"http://172.31.218.116/api/v1");
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
