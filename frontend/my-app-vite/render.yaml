@@ -1,8 +1,8 @@
 ﻿services:
   - type: web
     name: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
+    staticPublishPath: frontend/my-app-vite/dist
+    buildCommand: cd frontend/my-app-vite && npm install && npm run build
     routes:
       - type: rewrite
         source: /*
