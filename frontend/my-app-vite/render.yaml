@@ -1,8 +1,7 @@
 ﻿services:
   - type: web
-    name: ssbprep-frontend
-    env: static
-    buildCommand: npm run build
+    name: frontend
+    buildCommand: npm install && npm run build
     staticPublishPath: ./dist
     routes:
       - type: rewrite
