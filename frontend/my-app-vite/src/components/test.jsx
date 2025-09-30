@@ -292,29 +292,31 @@ const Test = () => {
  const confirmPause = async () => {
   setShowConfirmDialog(false);
   setIsTestPaused(true);
+  setIsPaused(true);   // <-- stop countdown
 
   if (document.fullscreenElement) {
     document.exitFullscreen();
   }
 
   await dispatch(
-  pauseTest({
-    testId: currentTest._id,
-    timeLeft,
-    answers,
-    currentQuestionIndex,
-    exam,
-    mockTest: selectedMockTest,
-  })
-);
+    pauseTest({
+      testId: currentTest._id,
+      timeLeft,
+      answers,
+      currentQuestionIndex,
+      exam,
+      mockTest: selectedMockTest,
+    })
+  );
 };
-  const handleResumeTest = () => {
-    setIsTestPaused(false);
-    if (isFullscreenAvailable()) {
-      toggleFullScreen();
-    }
-  };
 
+const handleResumeTest = () => {
+  setIsTestPaused(false);
+  setIsPaused(false);  
+  if (isFullscreenAvailable()) {
+    toggleFullScreen();
+  }
+};
   const getQuestionStatusClass = (idx) => {
     if (currentQuestionIndex === idx) return "active";
     if (answers[idx]) return "answered";
