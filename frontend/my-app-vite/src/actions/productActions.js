@@ -161,6 +161,35 @@ export const getResult = (testId) => async (dispatch) => {
   }
 };
 
+export const pauseTest = ({ testId, userId, timeLeft, answers, currentQuestionIndex, exam, mockTest }) => async () => {
+  try {
+    await axiosInstance.post("/test/pause", {
+      testId,
+      userId,
+      timeLeft,
+      answers,
+      currentQuestionIndex,
+    });
+
+    // Save locally as backup (so user can resume)
+    localStorage.setItem(
+      "pausedTest",
+      JSON.stringify({
+        testId,
+        exam,
+        mockTest,
+        timeLeft,
+        answers,
+        currentQuestionIndex,
+      })
+    );
+
+    return { success: true };
+  } catch (error) {
+    console.error("Pause Test Error:", error.response?.data || error);
+    return { success: false, message: error.response?.data?.message || "Failed to pause test" };
+  }
+};
 
 // Clear Errors
 export const clearErrors = () => async (dispatch) => {

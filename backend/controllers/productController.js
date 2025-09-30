@@ -102,6 +102,38 @@ exports.getTest = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
+exports.pauseTest = async (req, res, next) => {
+  try {
+    const { testId, userId, timeLeft, answers, currentQuestionIndex } = req.body;
+
+    // Find or create a TestAttempt for this user/test
+    let attempt = await TestAttempt.findOne({ test: testId, user: userId });
+    if (!attempt) {
+      attempt = new TestAttempt({
+        test: testId,
+        user: userId,
+        answers: [],
+        score: 0,
+        totalQuestions: 0,
+        correctAnswers: 0,
+        wrongAnswers: 0,
+        timeTaken: 0,
+      });
+    }
+
+    // Update with paused data
+    attempt.answers = answers;
+    attempt.timeTaken = (attempt.test?.timeDuration * 60 || 0) - timeLeft;
+    attempt.paused = true;
+    attempt.currentQuestionIndex = currentQuestionIndex;
+    await attempt.save();
+
+    res.status(200).json({ success: true, attempt });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // Submit test answers and get score => /api/v1/test/submit/:id
 exports.submitTest = catchAsyncErrors(async (req, res, next) => {
   const testId = req.params.id;

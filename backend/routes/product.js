@@ -13,7 +13,8 @@ const {
   deleteTest,
   submitTest,
   getResult,
-  getMyAttempts
+  getMyAttempts,
+  pauseTest
 } = require("../controllers/productController");
 
 const { isAuthenticatedUser, authorizeRoles }=require('../middlewares/auth');
@@ -37,5 +38,7 @@ router.route("/test/submit/:id").post(isAuthenticatedUser, submitTest);
 router.route("/test/result/:test_id").get(isAuthenticatedUser, getResult);
 
 router.route("/test/my-attempts").get(isAuthenticatedUser, getMyAttempts);
+
+router.post("/pause", pauseTest);
 
 module.exports = router;

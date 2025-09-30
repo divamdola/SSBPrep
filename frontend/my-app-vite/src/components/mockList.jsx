@@ -65,33 +65,42 @@ const MockList = () => {
                   )}
 
                   <button
-                    onClick={() => {
-                      if (isPausedTest) {
-                        localStorage.removeItem("pausedTest");
-                      }
+  onClick={async () => {
+    if (isPausedTest) {
+      localStorage.removeItem("pausedTest");
+    }
 
-                      if (attemptedTest) {
-                        navigate(`/${selectedExam}/${selectedMockTest}/test/result/${attemptedTest.test}`);
-                      } else {
-                        navigate(
-                          `/${selectedExam}/${selectedMockTest}/test/${test._id}`,
-                          {
-                            state: {
-                              selectedTest: selectedExam,
-                              test,
-                              isResume: isPausedTest,
-                            },
-                          }
-                        );
-                      }
-                    }}
-                  >
-                    {attemptedTest
-                      ? "View Result"
-                      : isPausedTest
-                      ? "Resume Test"
-                      : "Start Test"}
-                  </button>
+    // Request fullscreen before navigation
+    if (window.innerWidth > 768 && document.documentElement.requestFullscreen) {
+      try {
+        await document.documentElement.requestFullscreen();
+      } catch (e) {
+        // Ignore error if user cancels
+      }
+    }
+
+    if (attemptedTest) {
+      navigate(`/${selectedExam}/${selectedMockTest}/test/result/${attemptedTest.test}`);
+    } else {
+      navigate(
+        `/${selectedExam}/${selectedMockTest}/test/${test._id}`,
+        {
+          state: {
+            selectedTest: selectedExam,
+            test,
+            isResume: isPausedTest,
+          },
+        }
+      );
+    }
+  }}
+>
+  {attemptedTest
+    ? "View Result"
+    : isPausedTest
+    ? "Resume Test"
+    : "Start Test"}
+</button>
                 </div>
               );
             })

@@ -8,6 +8,7 @@ import React, {
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { getTests, submitTest, getResult } from "../actions/productActions";
+import { pauseTest } from "../actions/productActions";
 import MetaData from "./layouts/MetaData";
 
 const Test = () => {
@@ -151,21 +152,18 @@ const Test = () => {
   }, []);
 
   useEffect(() => {
-    if (isFullscreenAvailable()) {
-      toggleFullScreen();
+  const handleFullscreenChange = () => {
+    // Only trigger pause dialog if not already paused and not already showing the dialog
+    if (!document.fullscreenElement && !isTestPaused && !showConfirmDialog) {
+      handlePauseTest();
     }
+  };
 
-    const handleFullscreenChange = () => {
-      if (!document.fullscreenElement && !isTestPaused) {
-        handlePauseTest();
-      }
-    };
-
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, []);
+  document.addEventListener("fullscreenchange", handleFullscreenChange);
+  return () => {
+    document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  };
+}, [isTestPaused, showConfirmDialog]);
 
   useEffect(() => {
     if (timeLeft <= 0) {
@@ -291,25 +289,26 @@ const Test = () => {
     setShowConfirmDialog(true);
   };
 
-  const confirmPause = () => {
-    setIsTestPaused(true);
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    }
-    localStorage.setItem(
-      "pausedTest",
-      JSON.stringify({
-        testId: currentTest._id,
-        exam,
-        mockTest: selectedMockTest,
-        timeLeft,
-        answers,
-        currentQuestionIndex,
-      })
-    );
-    setShowConfirmDialog(false);
-  };
+ const confirmPause = async () => {
+  setShowConfirmDialog(false);
+  setIsTestPaused(true);
 
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  }
+
+  await dispatch(
+    pauseTest({
+      testId: currentTest._id,
+      userId: user?._id,   // 👈 comes from auth state
+      timeLeft,
+      answers,
+      currentQuestionIndex,
+      exam,
+      mockTest: selectedMockTest,
+    })
+  );
+};
   const handleResumeTest = () => {
     setIsTestPaused(false);
     if (isFullscreenAvailable()) {
