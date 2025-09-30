@@ -16,11 +16,16 @@ const Header = () => {
   const menuRef = useRef(null);
   const sidebarRef = useRef(null);
 
-  const logoutHandler = () => {
-    dispatch(logout());
+const logoutHandler = async () => {
+  try {
+    await dispatch(logout()); // wait for logout to complete
     toast.success("Logged out successfully! 👋");
-    navigate("/");
-  };
+    navigate("/"); // redirect after logout
+  } catch (error) {
+    toast.error("Logout failed. Please try again.");
+  }
+};
+
 
   useEffect(() => {
     const handleClickOutside = (event) => {
