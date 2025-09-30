@@ -104,7 +104,8 @@ exports.getTest = catchAsyncErrors(async (req, res, next) => {
 
 exports.pauseTest = async (req, res, next) => {
   try {
-    const { testId, userId, timeLeft, answers, currentQuestionIndex } = req.body;
+    const { testId, timeLeft, answers, currentQuestionIndex } = req.body;
+    const userId = req.user._id; // Always use authenticated user
 
     // Find or create a TestAttempt for this user/test
     let attempt = await TestAttempt.findOne({ test: testId, user: userId });

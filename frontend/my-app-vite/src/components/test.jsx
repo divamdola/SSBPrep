@@ -298,16 +298,15 @@ const Test = () => {
   }
 
   await dispatch(
-    pauseTest({
-      testId: currentTest._id,
-      userId: user?._id,   // 👈 comes from auth state
-      timeLeft,
-      answers,
-      currentQuestionIndex,
-      exam,
-      mockTest: selectedMockTest,
-    })
-  );
+  pauseTest({
+    testId: currentTest._id,
+    timeLeft,
+    answers,
+    currentQuestionIndex,
+    exam,
+    mockTest: selectedMockTest,
+  })
+);
 };
   const handleResumeTest = () => {
     setIsTestPaused(false);

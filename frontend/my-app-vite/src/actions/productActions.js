@@ -161,11 +161,10 @@ export const getResult = (testId) => async (dispatch) => {
   }
 };
 
-export const pauseTest = ({ testId, userId, timeLeft, answers, currentQuestionIndex, exam, mockTest }) => async () => {
+export const pauseTest = ({ testId, timeLeft, answers, currentQuestionIndex, exam, mockTest }) => async () => {
   try {
     await axiosInstance.post("/test/pause", {
       testId,
-      userId,
       timeLeft,
       answers,
       currentQuestionIndex,
