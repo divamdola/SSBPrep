@@ -37,6 +37,9 @@ const Test = () => {
   const selectedMockTest = location.state?.selectedMockTest || mockTest;
   const isResume = location.state?.isResume;
 
+  // For progress bar
+  const [progress, setProgress] = useState(100);
+
   const handleSubmit = useCallback(async (isAutoSubmit = false) => {
     if (!currentTest || !currentTest.questions) return;
     if (isSubmitting) return;
@@ -44,12 +47,10 @@ const Test = () => {
     try {
       setIsSubmitting(true);
 
-      // Clear any existing auto-submit timeout
       if (autoSubmitTimeoutRef.current) {
         clearTimeout(autoSubmitTimeoutRef.current);
       }
 
-      // Format answers according to the schema
       const formattedAnswers = currentTest.questions.map((question, index) => {
         const selectedOption = answers[index] || "";
         return {
@@ -65,18 +66,13 @@ const Test = () => {
         timeTaken: currentTest.timeDuration * 60 - timeLeft
       };
 
-      // If it's an auto-submit, show an alert
       if (isAutoSubmit) {
-        alert("Time's up! Your test is being submitted automatically.");
+        alert("⏰ Time's up! Your test is being submitted automatically.");
       }
 
-      // Submit test
-      const submitResponse = await dispatch(submitTest(payload));
-      
-      // Clear saved test state
+      await dispatch(submitTest(payload));
       localStorage.removeItem("pausedTest");
 
-      // Exit fullscreen mode if active
       if (document.fullscreenElement) {
         await document.exitFullscreen?.() ||
               document.webkitExitFullscreen?.() ||
@@ -84,22 +80,16 @@ const Test = () => {
               document.msExitFullscreen?.();
       }
 
-      // Wait a moment for the submission to be processed and fullscreen to exit
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       try {
-        // Try to fetch result
         await dispatch(getResult(currentTest._id));
         navigate(`/${selectedExam}/${selectedMockTest}/test/result/${currentTest._id}`);
       } catch (resultError) {
-        console.error("Failed to fetch result:", resultError);
-        // Even if result fetch fails, still navigate to result page
-        // It will handle showing loading state or retry fetching
         navigate(`/${selectedExam}/${selectedMockTest}/test/result/${currentTest._id}`);
       }
 
     } catch (error) {
-      console.error("Test submission error:", error);
       alert("Failed to submit test. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -128,13 +118,22 @@ const Test = () => {
       if (window.innerWidth > 768 && isFullscreenAvailable()) {
         const elem = document.documentElement;
         if (!document.fullscreenElement) {
-          elem.requestFullscreen?.().catch((err) =>
-            console.error("Failed to enter full screen:", err)
-          );
+          elem.requestFullscreen?.().catch(() => {});
         }
       }
     }
   }, [tests, id, isResume]);
+
+  useEffect(() => {
+    setProgress(
+      currentTest
+        ? Math.max(
+            0,
+            (timeLeft / (currentTest.timeDuration * 60)) * 100
+          )
+        : 100
+    );
+  }, [timeLeft, currentTest]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -174,17 +173,14 @@ const Test = () => {
       return;
     }
 
-    // Show warning when 5 minutes are left
     if (timeLeft === 300 && !showTimeWarning) {
       setShowTimeWarning(true);
       alert("⚠️ 5 minutes remaining!");
     }
-    // Show warning when 1 minute is left
     else if (timeLeft === 60 && !showTimeWarning) {
       setShowTimeWarning(true);
       alert("⚠️ 1 minute remaining!");
     }
-    // Reset warning flag when time changes
     else if (timeLeft !== 300 && timeLeft !== 60) {
       setShowTimeWarning(false);
     }
@@ -195,7 +191,6 @@ const Test = () => {
       setTimeLeft((prev) => prev - 1);
     }, 1000);
 
-    // Set up auto-submit 5 seconds before time ends
     if (timeLeft === 5) {
       autoSubmitTimeoutRef.current = setTimeout(() => {
         handleSubmit(true);
@@ -338,29 +333,35 @@ const Test = () => {
     return <p>Loading test...</p>;
   }
 
+  // Progress bar color
+  const progressColor =
+    progress > 50
+      ? "#4caf50"
+      : progress > 20
+      ? "#ffc107"
+      : "#f44336";
+
   return (
     <Fragment>
       <MetaData title={"Test"} />
       {isTestPaused ? (
-        <div className="paused-test-overlay">
-          <div className="pause-content">
-            <h2>
+        <div className="paused-test-overlay" style={{ animation: "fadeIn 0.5s" }}>
+          <div className="pause-content" tabIndex={0} aria-modal="true" role="dialog">
+            <h2 style={{ color: "#1976d2" }}>
               <i className="fas fa-pause-circle"></i>
               Test Paused
             </h2>
             <p>
-              Your test progress has been saved successfully.
-              <br /><br />
-              When you resume, you'll continue from exactly where you left off.
-              <br />
-              All your answers and remaining time will be preserved.
+              <span role="img" aria-label="info">💾</span> Your test progress has been saved.<br />
+              <span role="img" aria-label="clock">⏳</span> Resume to continue from where you left off.
             </p>
             <button
               className="btn btn-primary btn-lg"
               onClick={handleResumeTest}
+              autoFocus
             >
               <i className="fas fa-play"></i>
-              Resume Test Now
+              Resume Test
             </button>
           </div>
         </div>
@@ -372,27 +373,55 @@ const Test = () => {
               <div className="question-area">
                 <div className="test-content">
                   {/* Header with timer and pause button */}
-                  <div className="test-header">
+                  <div className="test-header" style={{ position: "sticky", top: 0, zIndex: 10 }}>
                     <div className="header-content">
-                      <h5 className="question-number">Question {currentQuestionIndex + 1}</h5>
-                      <div className="header-controls">
-                        <div className="timer">
-                          Time Left: {formatTime(timeLeft)}
+                      <h5 className="question-number">
+                        <span style={{ color: "#1976d2" }}>
+                          <i className="fas fa-question-circle"></i>
+                        </span>{" "}
+                        Question {currentQuestionIndex + 1} of {currentTest.questions.length}
+                      </h5>
+                      <div className="header-controls" style={{ alignItems: "center" }}>
+                        <div className="timer" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                          <span style={{ fontWeight: 600, color: progressColor }}>
+                            <i className="fas fa-clock"></i> {formatTime(timeLeft)}
+                          </span>
+                          <div
+                            style={{
+                              width: 120,
+                              height: 8,
+                              background: "#e0e0e0",
+                              borderRadius: 4,
+                              marginTop: 4,
+                              overflow: "hidden",
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: `${progress}%`,
+                                height: "100%",
+                                background: progressColor,
+                                transition: "width 0.5s",
+                              }}
+                            />
+                          </div>
                         </div>
-                        <button 
+                        <button
                           className="btn btn-outline-warning"
                           onClick={handlePauseTest}
+                          style={{ marginLeft: 16 }}
+                          title="Pause Test"
                         >
-                          <i className="fas fa-pause"></i> Pause Test
+                          <i className="fas fa-pause"></i> Pause
                         </button>
                       </div>
                     </div>
                   </div>
 
                   {/* Question content */}
-                  <div className="question-container">
+                  <div className="question-container" style={{ animation: "fadeIn 0.3s" }}>
                     <div className="question-content">
-                      <div className="question-text" style={{ whiteSpace: 'pre-line' }}>
+                      <div className="question-text" style={{ whiteSpace: 'pre-line', marginBottom: 16 }}>
                         {currentTest.questions[currentQuestionIndex].questionText.split('\n').map((line, index) => (
                           <p key={index} className={index === 0 ? 'main-question' : 'sub-question'}>
                             {line}
@@ -402,7 +431,18 @@ const Test = () => {
 
                       <div className="options-grid">
                         {currentTest.questions[currentQuestionIndex].options.map((option, idx) => (
-                          <div key={idx} className="option-item">
+                          <div
+                            key={idx}
+                            className={`option-item${answers[currentQuestionIndex] === option ? " selected" : ""}`}
+                            style={{
+                              border: answers[currentQuestionIndex] === option ? "2px solid #1976d2" : undefined,
+                              background: answers[currentQuestionIndex] === option ? "#e3f2fd" : undefined,
+                              transition: "all 0.2s",
+                            }}
+                            tabIndex={0}
+                            aria-checked={answers[currentQuestionIndex] === option}
+                            role="radio"
+                          >
                             <input
                               type="radio"
                               name={`question${currentQuestionIndex}`}
@@ -410,8 +450,9 @@ const Test = () => {
                               value={option}
                               checked={answers[currentQuestionIndex] === option}
                               onChange={handleOptionChange}
+                              style={{ accentColor: "#1976d2" }}
                             />
-                            <label htmlFor={`option${idx}`}>
+                            <label htmlFor={`option${idx}`} style={{ cursor: "pointer", width: "100%" }}>
                               {option}
                             </label>
                           </div>
@@ -422,26 +463,40 @@ const Test = () => {
 
                   {/* Navigation buttons */}
                   <div className="navigation-buttons">
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => setCurrentQuestionIndex(currentQuestionIndex - 1)}
-                      disabled={currentQuestionIndex === 0}
-                    >
-                      <i className="fas fa-arrow-left me-2"></i>
-                      Previous
-                    </button>
+                    <div className="nav-group">
+                      <button
+                        className="btn btn-secondary"
+                        onClick={handlePrevious}
+                        disabled={currentQuestionIndex === 0}
+                        title="Previous Question"
+                      >
+                        <i className="fas fa-arrow-left me-2"></i>
+                        Previous
+                      </button>
+                      <button
+                        className="btn btn-outline-info"
+                        onClick={handleSkipQuestion}
+                        disabled={currentQuestionIndex === currentTest.questions.length - 1}
+                        title="Skip Question"
+                      >
+                        <i className="fas fa-forward"></i> Skip
+                      </button>
+                    </div>
                     {currentQuestionIndex === currentTest.questions.length - 1 ? (
                       <button
-                        className="btn btn-primary"
+                        className="btn btn-success"
                         onClick={handleSubmit}
+                        disabled={isSubmitting}
+                        title="Submit Test"
                       >
                         <i className="fas fa-check-circle me-2"></i>
-                        Submit Test
+                        {isSubmitting ? "Submitting..." : "Submit Test"}
                       </button>
                     ) : (
                       <button
                         className="btn btn-primary"
                         onClick={handleNext}
+                        title="Next Question"
                       >
                         Next
                         <i className="fas fa-arrow-right ms-2"></i>
@@ -454,31 +509,61 @@ const Test = () => {
               {/* Question palette */}
               <div className="question-palette-area">
                 <div className="palette-content">
-                  <h5 className="palette-title">Question Palette</h5>
+                  <h5 className="palette-title">
+                    <i className="fas fa-th"></i> Question Palette
+                  </h5>
                   <div className="palette-legend">
-                    <div className="legend-item">
+                    <div className="legend-item" title="Answered">
                       <span className="legend-color answered"></span>
                       <span>Answered</span>
                     </div>
-                    <div className="legend-item">
+                    <div className="legend-item" title="Not Answered">
                       <span className="legend-color skipped"></span>
                       <span>Not Answered</span>
                     </div>
-                    <div className="legend-item">
+                    <div className="legend-item" title="Visited">
                       <span className="legend-color visited"></span>
                       <span>Visited</span>
                     </div>
-                    <div className="legend-item">
+                    <div className="legend-item" title="Not Visited">
                       <span className="legend-color"></span>
                       <span>Not Visited</span>
                     </div>
                   </div>
-                  <div className="question-grid">
+                  <div className="question-grid" style={{ marginTop: 12 }}>
                     {currentTest.questions.map((_, idx) => (
                       <button
                         key={idx}
                         className={`palette-btn ${getQuestionStatusClass(idx)}`}
                         onClick={() => setCurrentQuestionIndex(idx)}
+                        aria-label={`Go to question ${idx + 1}`}
+                        title={`Go to question ${idx + 1}`}
+                        style={{
+                          border:
+                            currentQuestionIndex === idx
+                              ? "2px solid #1976d2"
+                              : undefined,
+                          background:
+                            answers[idx]
+                              ? "#4caf50"
+                              : skippedQuestions.has(idx)
+                              ? "#f44336"
+                              : visitedQuestions.has(idx)
+                              ? "#90caf9"
+                              : "#e0e0e0",
+                          color:
+                            currentQuestionIndex === idx
+                              ? "#1976d2"
+                              : answers[idx]
+                              ? "#fff"
+                              : skippedQuestions.has(idx)
+                              ? "#fff"
+                              : visitedQuestions.has(idx)
+                              ? "#fff"
+                              : "#424242",
+                          fontWeight: currentQuestionIndex === idx ? 700 : 500,
+                          transition: "all 0.2s",
+                        }}
                       >
                         {idx + 1}
                       </button>
@@ -493,7 +578,7 @@ const Test = () => {
 
       {/* Pause Confirmation Modal */}
       {showConfirmDialog && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" style={{ animation: "fadeIn 0.3s" }}>
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
@@ -501,9 +586,9 @@ const Test = () => {
                   <i className="fas fa-pause-circle"></i>
                   Pause Test
                 </h5>
-                <button 
-                  type="button" 
-                  className="btn-close" 
+                <button
+                  type="button"
+                  className="btn-close"
                   onClick={() => setShowConfirmDialog(false)}
                   aria-label="Close"
                 ></button>
@@ -511,28 +596,25 @@ const Test = () => {
               <div className="modal-body">
                 <p>
                   Would you like to pause your test?
-                  <br /><br />
-                  Don't worry - we'll save your progress automatically:
                   <br />
-                  • All your answers will be saved
-                  <br />
-                  • Your remaining time will be preserved
-                  <br />
-                  • You can resume exactly where you left off
+                  <span style={{ fontSize: "1.1em" }}>
+                    <span role="img" aria-label="save">💾</span> All your answers and time will be saved.<br />
+                    <span role="img" aria-label="resume">▶️</span> You can resume anytime.
+                  </span>
                 </p>
               </div>
               <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary" 
+                <button
+                  type="button"
+                  className="btn btn-secondary"
                   onClick={() => setShowConfirmDialog(false)}
                 >
                   <i className="fas fa-arrow-left"></i>
                   Continue Test
                 </button>
-                <button 
-                  type="button" 
-                  className="btn btn-primary" 
+                <button
+                  type="button"
+                  className="btn btn-warning"
                   onClick={confirmPause}
                 >
                   <i className="fas fa-pause"></i>
@@ -547,4 +629,4 @@ const Test = () => {
   );
 };
 
-export default Test; 
+export default Test;
