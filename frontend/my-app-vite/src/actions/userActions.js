@@ -63,7 +63,7 @@ export const login = (email, password) => async (dispatch) => {
 // Logout User
 export const logout = () => async (dispatch) => {
   try {
-    await axiosInstance.post("/logout");
+    await axiosInstance.post("/logout", {}, { withCredentials: true });
 
     dispatch({ type: LOGOUT_SUCCESS });
 
