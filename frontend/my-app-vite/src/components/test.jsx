@@ -575,56 +575,35 @@ const Test = () => {
           )}
         </div>
       )}
-
-      {/* Pause Confirmation Modal */}
       {showConfirmDialog && (
-        <div className="modal-overlay" style={{ animation: "fadeIn 0.3s" }}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">
-                  <i className="fas fa-pause-circle"></i>
-                  Pause Test
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowConfirmDialog(false)}
-                  aria-label="Close"
-                ></button>
-              </div>
-              <div className="modal-body">
-                <p>
-                  Would you like to pause your test?
-                  <br />
-                  <span style={{ fontSize: "1.1em" }}>
-                    <span role="img" aria-label="save">💾</span> All your answers and time will be saved.<br />
-                    <span role="img" aria-label="resume">▶️</span> You can resume anytime.
-                  </span>
-                </p>
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowConfirmDialog(false)}
-                >
-                  <i className="fas fa-arrow-left"></i>
-                  Continue Test
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-warning"
-                  onClick={confirmPause}
-                >
-                  <i className="fas fa-pause"></i>
-                  Pause Now
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+  <div className="custom-modal-overlay">
+    <div className="custom-modal-glass">
+      <div className="custom-modal-icon">
+        <i className="fas fa-pause-circle"></i>
+      </div>
+      <h2>Pause Test</h2>
+      <p>
+        <span role="img" aria-label="save">💾</span> All your answers and time will be saved.<br />
+        <span role="img" aria-label="resume">▶️</span> You can resume anytime.<br />
+        <span role="img" aria-label="fullscreen">🖥️</span> Fullscreen will be toggled automatically.
+      </p>
+      <div className="custom-modal-actions">
+        <button
+          className="custom-btn custom-btn-continue"
+          onClick={() => setShowConfirmDialog(false)}
+        >
+          <i className="fas fa-arrow-left"></i> Continue Test
+        </button>
+        <button
+          className="custom-btn custom-btn-pause"
+          onClick={confirmPause}
+        >
+          <i className="fas fa-pause"></i> Pause Now
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </Fragment>
   );
 };
