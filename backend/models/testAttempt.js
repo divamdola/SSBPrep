@@ -3,60 +3,29 @@ const mongoose = require("mongoose");
 
 const testAttemptSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    test: {
-      type: mongoose.Schema.ObjectId,
-      ref: "Test",
-      required: true,
-    },
+    user: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
+    test: { type: mongoose.Schema.ObjectId, ref: "Test", required: true },
     answers: [
       {
-        question: {
-          type: String, // Store question text or _id
-          required: true,
-        },
-        selectedOption: {
-          type: String,
-          required: true,
-          default: "Not Attempted"
-        },
-        isCorrect: {
-          type: Boolean,
-          required: true,
-          default: false
-        },
+        question: { type: String, required: true },
+        selectedOption: { type: String, required: true, default: "Not Attempted" },
+        isCorrect: { type: Boolean, required: true, default: false },
       },
     ],
-    score: {
-      type: Number,
-      required: true,
-    },
-    totalQuestions: {
-      type: Number,
-      required: true,
-    },
-    correctAnswers: {
-      type: Number,
-      required: true,
-    },
-    wrongAnswers: {
-      type: Number,
-      required: true,
-    },
-    timeTaken: {
-      type: Number, // in seconds
-      required: true,
-    },
-    attemptedAt: {
-      type: Date,
-      default: Date.now,
-    },
+    score: { type: Number, required: true, default: 0 },
+    totalQuestions: { type: Number, required: true, default: 0 },
+    correctAnswers: { type: Number, required: true, default: 0 },
+    wrongAnswers: { type: Number, required: true, default: 0 },
+    timeTaken: { type: Number, required: true, default: 0 }, // in seconds
+    attemptedAt: { type: Date, default: Date.now },
+
+    // 👇 New fields
+    paused: { type: Boolean, default: false },
+    currentQuestionIndex: { type: Number, default: 0 },
+    timeLeft: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
+
 
 module.exports = mongoose.model("TestAttempt", testAttemptSchema);

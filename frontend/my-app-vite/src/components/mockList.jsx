@@ -13,7 +13,9 @@ const MockList = () => {
   const selectedExam = location.state?.selectedExam || exam;
   const selectedMockTest = location.state?.selectedMockTest || mockTest;
 
-  const { tests, attempts, loading, error } = useSelector((state) => state.tests);
+  const { tests, attempts, loading, error } = useSelector(
+    (state) => state.tests
+  );
 
   const pausedTest = JSON.parse(localStorage.getItem("pausedTest"));
 
@@ -47,11 +49,16 @@ const MockList = () => {
           {tests.length > 0 ? (
             tests.map((test) => {
               const isPausedTest =
-                pausedTest?.testId === test._id &&
-                pausedTest?.exam === selectedExam &&
-                pausedTest?.mockTest === selectedMockTest;
+                (pausedTest?.testId === test._id &&
+                  pausedTest?.exam === selectedExam &&
+                  pausedTest?.mockTest === selectedMockTest) ||
+                attempts?.some(
+                  (a) => a.test?.toString() === test._id && a.paused
+                );
 
-              const attemptedTest = attempts?.find((a) => a.test?.toString() === test._id);
+              const attemptedTest = attempts?.find(
+                (a) => a.test?.toString() === test._id
+              );
 
               return (
                 <div className="mock-container" key={test._id}>
@@ -59,7 +66,10 @@ const MockList = () => {
                   {attemptedTest && (
                     <div className="test-score">
                       <p style={{ marginBottom: "8px" }}>
-                        Score: <span className="score-value">{formatScore(attemptedTest.score)}</span>
+                        Score:{" "}
+                        <span className="score-value">
+                          {formatScore(attemptedTest.score)}
+                        </span>
                       </p>
                     </div>
                   )}
@@ -67,10 +77,10 @@ const MockList = () => {
                   <button
                     onClick={async () => {
                       if (isPausedTest) {
-                        localStorage.removeItem("pausedTest");
+                        localStorage.removeItem("pausedTest"); // clear stale paused test
                       }
 
-                      // Always request fullscreen before navigation
+                      // Ensure fullscreen before navigation
                       if (
                         window.innerWidth > 768 &&
                         document.documentElement.requestFullscreen &&
@@ -79,12 +89,14 @@ const MockList = () => {
                         try {
                           await document.documentElement.requestFullscreen();
                         } catch (e) {
-                          // Ignore error if user cancels
+                          // user canceled
                         }
                       }
 
-                      if (attemptedTest) {
-                        navigate(`/${selectedExam}/${selectedMockTest}/test/result/${attemptedTest.test}`);
+                      if (attemptedTest && !attemptedTest.paused) {
+                        navigate(
+                          `/${selectedExam}/${selectedMockTest}/test/result/${attemptedTest.test}`
+                        );
                       } else {
                         navigate(
                           `/${selectedExam}/${selectedMockTest}/test/${test._id}`,
@@ -99,7 +111,7 @@ const MockList = () => {
                       }
                     }}
                   >
-                    {attemptedTest
+                    {attemptedTest && !attemptedTest.paused
                       ? "View Result"
                       : isPausedTest
                       ? "Resume Test"
