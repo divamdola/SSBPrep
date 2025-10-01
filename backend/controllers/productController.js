@@ -126,6 +126,20 @@ exports.pauseTest = async (req, res) => {
   }
 };
 
+exports.getResult = catchAsyncErrors(async (req, res, next) => {
+  const result = await TestAttempt.findOne({ test: req.params.test_id, user: req.user._id }).populate("test");
+
+  if (!result) {
+    return next(new ErrorHandler("Result not found", 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    result,
+  });
+});
+
+
 
 // Submit test answers and get score => /api/v1/test/submit/:id
 exports.submitTest = catchAsyncErrors(async (req, res, next) => {
