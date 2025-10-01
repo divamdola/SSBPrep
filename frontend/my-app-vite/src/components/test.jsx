@@ -651,9 +651,6 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-// Removed react-redux and react-router-dom imports to resolve build errors.
-// Mock implementations are provided below.
-
 // --- MOCK IMPLEMENTATIONS & PLACEHOLDERS ---
 
 // Mock Redux hooks
@@ -703,8 +700,9 @@ const formatTime = (seconds) => {
 
 // --- CUSTOM HOOKS ---
 
-const useTimer = (initialTime = 0, onTimeout) => {
-  const [timeLeft, setTimeLeft] = useState(initialTime);
+// FIX: Refactored useTimer for more explicit control (start, pause, resume)
+const useTimer = (onTimeout) => {
+  const [timeLeft, setTimeLeft] = useState(0);
   const [isPaused, setIsPaused] = useState(true);
   const timeoutCallback = useRef(onTimeout);
 
@@ -714,24 +712,34 @@ const useTimer = (initialTime = 0, onTimeout) => {
 
   useEffect(() => {
     if (isPaused || timeLeft <= 0) return;
-    const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
     return () => clearInterval(timer);
   }, [timeLeft, isPaused]);
 
   useEffect(() => {
-    if (timeLeft === 0) {
+    if (timeLeft === 0 && !isPaused) {
       timeoutCallback.current?.();
     }
     if (timeLeft === 300) console.log("⚠️ 5 minutes remaining!");
     if (timeLeft === 60) console.log("⚠️ 1 minute remaining!");
-  }, [timeLeft]);
+  }, [timeLeft, isPaused]);
 
-  const setInitialTime = useCallback((time) => {
-      setTimeLeft(time);
-      setIsPaused(false);
+  const start = useCallback((time) => {
+    setTimeLeft(time);
+    setIsPaused(false);
   }, []);
 
-  return { timeLeft, setTimeLeft: setInitialTime, isPaused, setIsPaused };
+  const pause = useCallback(() => {
+    setIsPaused(true);
+  }, []);
+
+  const resume = useCallback(() => {
+    setIsPaused(false);
+  }, []);
+
+  return { timeLeft, start, pause, resume };
 };
 
 const useFullscreen = (onExit) => {
@@ -772,9 +780,6 @@ const useFullscreen = (onExit) => {
     return { isFullscreen, toggleFullScreen, isFullscreenAvailable };
 };
 
-
-// --- STYLES COMPONENT (INLINED CSS) ---
-// 
 
 // --- STYLES COMPONENT (INLINED AND ENHANCED FOR DESKTOP) ---
 const TestStyles = () => (
@@ -1246,9 +1251,19 @@ const Test = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isResume = location.state?.isResume;
   
+  // FIX: Ref to prevent pause race condition on fullscreen exit
+  const isPausingIntentionally = useRef(false);
+  
   const { isFullscreen, toggleFullScreen, isFullscreenAvailable } = useFullscreen(() => {
+    // FIX: Check the intentional pause ref before auto-pausing
+    if (isPausingIntentionally.current) {
+        isPausingIntentionally.current = false; // Reset the flag
+        return;
+    }
     if (!isTestPaused && !showConfirmDialog) handlePauseTest();
   });
+
+  const { timeLeft, start, pause, resume } = useTimer(() => handleSubmit(true));
 
   const handleSubmit = useCallback(async (isAutoSubmit = false) => {
     if (!currentTest || isSubmitting) return;
@@ -1273,9 +1288,7 @@ const Test = () => {
       alert("Failed to submit test. Please try again.");
       setIsSubmitting(false);
     }
-  }, [ currentTest, isSubmitting, answers, navigate, exam, mockTest, dispatch, isFullscreen]); // Added timeLeft, isFullscreen
-
-  const { timeLeft, setTimeLeft, isPaused, setIsPaused } = useTimer(0, () => handleSubmit(true));
+  }, [ currentTest, isSubmitting, answers, navigate, exam, mockTest, dispatch, isFullscreen, timeLeft ]); // FIX: Added timeLeft dependency
 
   useEffect(() => {
     if (exam) dispatch(getTests(exam));
@@ -1286,27 +1299,31 @@ const Test = () => {
     if (!test) return;
     setCurrentTest(test);
     const initialTime = test.timeDuration * 60;
+
     if (isResume) {
-      dispatch(resumeTest(test._id)).then((res) => setTimeLeft(res?.attempt?.timeLeft || initialTime));
+      dispatch(resumeTest(test._id)).then((res) => start(res?.attempt?.timeLeft || initialTime));
     } else {
-      setTimeLeft(initialTime);
+      start(initialTime); // FIX: Use the new start function
     }
     if (window.innerWidth > 768 && isFullscreenAvailable()) toggleFullScreen();
-  }, [tests, id, isResume, dispatch, setTimeLeft, isFullscreenAvailable, toggleFullScreen]);
+  }, [tests, id, isResume, dispatch, start, isFullscreenAvailable, toggleFullScreen]); // FIX: Use 'start' in dependency array
 
   const handlePauseTest = () => setShowConfirmDialog(true);
 
   const confirmPause = async () => {
     setShowConfirmDialog(false);
     setIsTestPaused(true);
-    setIsPaused(true);
+    pause(); // FIX: Use the new pause function
+    
+    isPausingIntentionally.current = true; // FIX: Signal that we are pausing on purpose
     if (isFullscreen) await document.exitFullscreen();
+
     dispatch(pauseTest({ testId: currentTest._id, timeLeft, answers, currentQuestionIndex }));
   };
 
   const handleResumeTest = () => {
     setIsTestPaused(false);
-    setIsPaused(false);
+    resume(); // FIX: Use the new resume function
     if (isFullscreenAvailable()) toggleFullScreen();
   };
 
@@ -1387,4 +1404,3 @@ const Test = () => {
 };
 
 export default Test;
-
