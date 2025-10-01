@@ -191,6 +191,16 @@ export const pauseTest = ({ testId, timeLeft, answers, currentQuestionIndex, exa
     }
   };
 
+export const resumeTest = (testId) => async (dispatch) => {
+  try {
+    const { data } = await axiosInstance.post("/test/resume", { testId });
+    return { success: true, attempt: data.attempt };
+  } catch (error) {
+    console.error("Resume Test Error:", error.response?.data || error);
+    return { success: false, message: error.response?.data?.message || "Failed to resume test" };
+  }
+};
+
 
 // Clear Errors
 export const clearErrors = () => async (dispatch) => {

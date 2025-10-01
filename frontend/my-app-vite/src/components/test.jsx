@@ -8,7 +8,7 @@ import React, {
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { getTests, submitTest, getResult } from "../actions/productActions";
-import { pauseTest } from "../actions/productActions";
+import { pauseTest,resumeTest } from "../actions/productActions";
 import MetaData from "./layouts/MetaData";
 
 const Test = () => {
@@ -96,6 +96,39 @@ const Test = () => {
       setIsSubmitting(false);
     }
   }, [currentTest, answers, timeLeft, dispatch, navigate, selectedExam, selectedMockTest, isSubmitting]);
+
+useEffect(() => {
+  const test = tests.find((t) => t._id === id);
+  if (test) {
+    setCurrentTest(test);
+
+    if (isResume) {
+      // hit backend resume
+      dispatch(resumeTest(test._id)).then((res) => {
+        if (res.success) {
+          const attempt = res.attempt;
+          setTimeLeft(attempt.timeLeft || test.timeDuration * 60);
+          setAnswers(
+            attempt.answers?.reduce((acc, ans, idx) => {
+              acc[idx] = ans.selectedOption === "Not Attempted" ? "" : ans.selectedOption;
+              return acc;
+            }, {}) || {}
+          );
+          setCurrentQuestionIndex(attempt.currentQuestionIndex || 0);
+        }
+      });
+    } else {
+      setTimeLeft(test.timeDuration * 60);
+    }
+
+    if (window.innerWidth > 768 && isFullscreenAvailable()) {
+      const elem = document.documentElement;
+      if (!document.fullscreenElement) {
+        elem.requestFullscreen?.().catch(() => {});
+      }
+    }
+  }
+}, [tests, id, isResume, dispatch]);
 
   useEffect(() => {
     if (exam) {

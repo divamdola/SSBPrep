@@ -139,6 +139,25 @@ exports.getResult = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
+exports.resumeTest = async (req, res) => {
+  try {
+    const { testId } = req.body;
+    const userId = req.user._id;
+
+    let attempt = await TestAttempt.findOne({ test: testId, user: userId });
+
+    if (!attempt) {
+      return res.status(404).json({ success: false, message: "No paused attempt found" });
+    }
+
+    attempt.paused = false; // 👈 clear pause flag
+    await attempt.save();
+
+    res.status(200).json({ success: true, attempt });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 
 // Submit test answers and get score => /api/v1/test/submit/:id
