@@ -113,10 +113,10 @@ exports.pauseTest = async (req, res) => {
     }
 
     attempt.answers = answers;
-    attempt.timeLeft = timeLeft;
-    attempt.timeTaken = (attempt.test?.timeDuration * 60 || 0) - timeLeft;
-    attempt.paused = true;
-    attempt.currentQuestionIndex = currentQuestionIndex;
+attempt.timeLeft = timeLeft;
+attempt.paused = true;
+attempt.currentQuestionIndex = currentQuestionIndex;
+
 
     await attempt.save();
 
