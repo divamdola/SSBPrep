@@ -13,17 +13,19 @@ const upload = multer(); // ✅ Multer to handle form-data
 // ✅ Use middlewares before routes
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://172.31.218.116:3000","https://frontend7-sm0h.onrender.com"],
+    origin: [
+      "http://localhost:3000",
+      "http://172.31.218.116:3000",
+      "https://frontend7-sm0h.onrender.com"
+    ],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"], // Ensure "Authorization" is included
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
   })
 );
 
-app.options("*", cors({
-  origin: ["http://localhost:3000", "http://172.31.218.116:3000","https://frontend7-sm0h.onrender.com"],
-  credentials: true,
-}));
+app.options("*", cors());
+
 
 app.use(express.static(path.join(__dirname, "../client/dist")));
 app.use(express.json()); // ✅ Parse JSON
