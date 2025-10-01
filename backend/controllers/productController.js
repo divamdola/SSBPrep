@@ -105,27 +105,27 @@ exports.getTest = catchAsyncErrors(async (req, res, next) => {
 exports.pauseTest = async (req, res) => {
   try {
     const { testId, timeLeft, answers, currentQuestionIndex } = req.body;
-    const userId = req.user._id;
+    const userId = req.user?._id;
 
-    // ✅ Use findOneAndUpdate with upsert
+    console.log("PauseTest Called:", { testId, userId, timeLeft, currentQuestionIndex });
+
     const attempt = await TestAttempt.findOneAndUpdate(
       { test: testId, user: userId },
       {
-        $set: {
-          answers,
-          timeLeft,
-          currentQuestionIndex,
-          paused: true, // ✅ ensure it's stored
-        },
+        $set: { answers, timeLeft, currentQuestionIndex, paused: true },
       },
       { new: true, upsert: true }
     );
 
+    console.log("Updated Attempt:", attempt);
+
     res.status(200).json({ success: true, attempt });
   } catch (error) {
+    console.error("PauseTest Error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 
 exports.getResult = catchAsyncErrors(async (req, res, next) => {
