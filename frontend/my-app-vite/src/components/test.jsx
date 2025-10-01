@@ -1,380 +1,380 @@
-// import React, {
-//   useEffect,
-//   useState,
-//   Fragment,
-//   useCallback,
-//   useRef,
-// } from "react";
-// import { useDispatch, useSelector } from "react-redux";
-// import { useNavigate, useParams, useLocation } from "react-router-dom";
-// import { getTests, submitTest, getResult } from "../actions/productActions";
-// import { pauseTest,resumeTest } from "../actions/productActions";
-// import MetaData from "./layouts/MetaData";
+import React, {
+  useEffect,
+  useState,
+  Fragment,
+  useCallback,
+  useRef,
+} from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { getTests, submitTest, getResult } from "../actions/productActions";
+import { pauseTest,resumeTest } from "../actions/productActions";
+import MetaData from "./layouts/MetaData";
 
-// const Test = () => {
-//   const dispatch = useDispatch();
-//   const navigate = useNavigate();
-//   const location = useLocation();
-//   const { exam, mockTest, id } = useParams();
+const Test = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { exam, mockTest, id } = useParams();
 
-//   const { tests, error } = useSelector((state) => state.tests);
-//   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-//   const [answers, setAnswers] = useState({});
-//   const [currentTest, setCurrentTest] = useState(null);
-//   const [timeLeft, setTimeLeft] = useState(0);
-//   const [isPaused, setIsPaused] = useState(false);
-//   const [isTestPaused, setIsTestPaused] = useState(false);
-//   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-//   const [skippedQuestions, setSkippedQuestions] = useState(new Set());
-//   const [visitedQuestions, setVisitedQuestions] = useState(new Set([0]));
-//   const [isSubmitting, setIsSubmitting] = useState(false);
-//   const [showTimeWarning, setShowTimeWarning] = useState(false);
-//   const autoSubmitTimeoutRef = useRef(null);
+  const { tests, error } = useSelector((state) => state.tests);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [currentTest, setCurrentTest] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isTestPaused, setIsTestPaused] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [skippedQuestions, setSkippedQuestions] = useState(new Set());
+  const [visitedQuestions, setVisitedQuestions] = useState(new Set([0]));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showTimeWarning, setShowTimeWarning] = useState(false);
+  const autoSubmitTimeoutRef = useRef(null);
 
-//   const pauseModalRef = useRef(null);
-//   const pauseModalInstanceRef = useRef(null);
+  const pauseModalRef = useRef(null);
+  const pauseModalInstanceRef = useRef(null);
 
-//   const selectedExam = location.state?.selectedExam || exam;
-//   const selectedMockTest = location.state?.selectedMockTest || mockTest;
-//   const isResume = location.state?.isResume;
+  const selectedExam = location.state?.selectedExam || exam;
+  const selectedMockTest = location.state?.selectedMockTest || mockTest;
+  const isResume = location.state?.isResume;
 
-//   // For progress bar
-//   const [progress, setProgress] = useState(100);
+  // For progress bar
+  const [progress, setProgress] = useState(100);
 
-//   const handleSubmit = useCallback(async (isAutoSubmit = false) => {
-//     if (!currentTest || !currentTest.questions) return;
-//     if (isSubmitting) return;
+  const handleSubmit = useCallback(async (isAutoSubmit = false) => {
+    if (!currentTest || !currentTest.questions) return;
+    if (isSubmitting) return;
 
-//     try {
-//       setIsSubmitting(true);
+    try {
+      setIsSubmitting(true);
 
-//       if (autoSubmitTimeoutRef.current) {
-//         clearTimeout(autoSubmitTimeoutRef.current);
-//       }
+      if (autoSubmitTimeoutRef.current) {
+        clearTimeout(autoSubmitTimeoutRef.current);
+      }
 
-//       const formattedAnswers = currentTest.questions.map((question, index) => {
-//         const selectedOption = answers[index] || "";
-//         return {
-//           question: question.questionText,
-//           selectedOption: selectedOption || "Not Attempted",
-//           isCorrect: selectedOption === question.answer
-//         };
-//       });
+      const formattedAnswers = currentTest.questions.map((question, index) => {
+        const selectedOption = answers[index] || "";
+        return {
+          question: question.questionText,
+          selectedOption: selectedOption || "Not Attempted",
+          isCorrect: selectedOption === question.answer
+        };
+      });
 
-//       const payload = {
-//         testId: currentTest._id,
-//         answers: formattedAnswers,
-//         timeTaken: currentTest.timeDuration * 60 - timeLeft
-//       };
+      const payload = {
+        testId: currentTest._id,
+        answers: formattedAnswers,
+        timeTaken: currentTest.timeDuration * 60 - timeLeft
+      };
 
-//       if (isAutoSubmit) {
-//         alert("⏰ Time's up! Your test is being submitted automatically.");
-//       }
+      if (isAutoSubmit) {
+        alert("⏰ Time's up! Your test is being submitted automatically.");
+      }
 
-//       await dispatch(submitTest(payload));
-//       localStorage.removeItem("pausedTest");
+      await dispatch(submitTest(payload));
+      localStorage.removeItem("pausedTest");
 
-//       if (document.fullscreenElement) {
-//         await document.exitFullscreen?.() ||
-//               document.webkitExitFullscreen?.() ||
-//               document.mozCancelFullScreen?.() ||
-//               document.msExitFullscreen?.();
-//       }
+      if (document.fullscreenElement) {
+        await document.exitFullscreen?.() ||
+              document.webkitExitFullscreen?.() ||
+              document.mozCancelFullScreen?.() ||
+              document.msExitFullscreen?.();
+      }
 
-//       await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-//       try {
-//         await dispatch(getResult(currentTest._id));
-//         navigate(`/${selectedExam}/${selectedMockTest}/test/result/${currentTest._id}`);
-//       } catch (resultError) {
-//         navigate(`/${selectedExam}/${selectedMockTest}/test/result/${currentTest._id}`);
-//       }
+      try {
+        await dispatch(getResult(currentTest._id));
+        navigate(`/${selectedExam}/${selectedMockTest}/test/result/${currentTest._id}`);
+      } catch (resultError) {
+        navigate(`/${selectedExam}/${selectedMockTest}/test/result/${currentTest._id}`);
+      }
 
-//     } catch (error) {
-//       alert("Failed to submit test. Please try again.");
-//     } finally {
-//       setIsSubmitting(false);
-//     }
-//   }, [currentTest, answers, timeLeft, dispatch, navigate, selectedExam, selectedMockTest, isSubmitting]);
+    } catch (error) {
+      alert("Failed to submit test. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [currentTest, answers, timeLeft, dispatch, navigate, selectedExam, selectedMockTest, isSubmitting]);
 
-// useEffect(() => {
-//   const test = tests.find((t) => t._id === id);
-//   if (test) {
-//     setCurrentTest(test);
+useEffect(() => {
+  const test = tests.find((t) => t._id === id);
+  if (test) {
+    setCurrentTest(test);
 
-//     if (isResume) {
-//       // hit backend resume
-//       dispatch(resumeTest(test._id)).then((res) => {
-//         if (res.success) {
-//           const attempt = res.attempt;
-//           setTimeLeft(attempt.timeLeft || test.timeDuration * 60);
-//           setAnswers(
-//             attempt.answers?.reduce((acc, ans, idx) => {
-//               acc[idx] = ans.selectedOption === "Not Attempted" ? "" : ans.selectedOption;
-//               return acc;
-//             }, {}) || {}
-//           );
-//           setCurrentQuestionIndex(attempt.currentQuestionIndex || 0);
-//         }
-//       });
-//     } else {
-//       setTimeLeft(test.timeDuration * 60);
-//     }
+    if (isResume) {
+      // hit backend resume
+      dispatch(resumeTest(test._id)).then((res) => {
+        if (res.success) {
+          const attempt = res.attempt;
+          setTimeLeft(attempt.timeLeft || test.timeDuration * 60);
+          setAnswers(
+            attempt.answers?.reduce((acc, ans, idx) => {
+              acc[idx] = ans.selectedOption === "Not Attempted" ? "" : ans.selectedOption;
+              return acc;
+            }, {}) || {}
+          );
+          setCurrentQuestionIndex(attempt.currentQuestionIndex || 0);
+        }
+      });
+    } else {
+      setTimeLeft(test.timeDuration * 60);
+    }
 
-//     if (window.innerWidth > 768 && isFullscreenAvailable()) {
-//       const elem = document.documentElement;
-//       if (!document.fullscreenElement) {
-//         elem.requestFullscreen?.().catch(() => {});
-//       }
-//     }
-//   }
-// }, [tests, id, isResume, dispatch]);
+    if (window.innerWidth > 768 && isFullscreenAvailable()) {
+      const elem = document.documentElement;
+      if (!document.fullscreenElement) {
+        elem.requestFullscreen?.().catch(() => {});
+      }
+    }
+  }
+}, [tests, id, isResume, dispatch]);
 
-//   useEffect(() => {
-//     if (exam) {
-//       dispatch(getTests(exam));
-//     }
-//   }, [dispatch, exam]);
+  useEffect(() => {
+    if (exam) {
+      dispatch(getTests(exam));
+    }
+  }, [dispatch, exam]);
 
-//   useEffect(() => {
-//     const test = tests.find((t) => t._id === id);
-//     if (test) {
-//       setCurrentTest(test);
-//       const paused = JSON.parse(localStorage.getItem("pausedTest"));
-//       if (isResume && paused?.timeLeft) {
-//         setTimeLeft(paused.timeLeft);
-//         setAnswers(paused.answers || {});
-//         setCurrentQuestionIndex(paused.currentQuestionIndex || 0);
-//       } else {
-//         setTimeLeft(test.timeDuration * 60);
-//       }
+  useEffect(() => {
+    const test = tests.find((t) => t._id === id);
+    if (test) {
+      setCurrentTest(test);
+      const paused = JSON.parse(localStorage.getItem("pausedTest"));
+      if (isResume && paused?.timeLeft) {
+        setTimeLeft(paused.timeLeft);
+        setAnswers(paused.answers || {});
+        setCurrentQuestionIndex(paused.currentQuestionIndex || 0);
+      } else {
+        setTimeLeft(test.timeDuration * 60);
+      }
 
-//       if (window.innerWidth > 768 && isFullscreenAvailable()) {
-//         const elem = document.documentElement;
-//         if (!document.fullscreenElement) {
-//           elem.requestFullscreen?.().catch(() => {});
-//         }
-//       }
-//     }
-//   }, [tests, id, isResume]);
+      if (window.innerWidth > 768 && isFullscreenAvailable()) {
+        const elem = document.documentElement;
+        if (!document.fullscreenElement) {
+          elem.requestFullscreen?.().catch(() => {});
+        }
+      }
+    }
+  }, [tests, id, isResume]);
 
-//   useEffect(() => {
-//     setProgress(
-//       currentTest
-//         ? Math.max(
-//             0,
-//             (timeLeft / (currentTest.timeDuration * 60)) * 100
-//           )
-//         : 100
-//     );
-//   }, [timeLeft, currentTest]);
+  useEffect(() => {
+    setProgress(
+      currentTest
+        ? Math.max(
+            0,
+            (timeLeft / (currentTest.timeDuration * 60)) * 100
+          )
+        : 100
+    );
+  }, [timeLeft, currentTest]);
 
-//   useEffect(() => {
-//     const timer = setTimeout(() => {
-//       if (pauseModalRef.current && window.bootstrap?.Modal) {
-//         pauseModalInstanceRef.current = new window.bootstrap.Modal(
-//           pauseModalRef.current,
-//           {
-//             backdrop: "static",
-//             keyboard: false,
-//           }
-//         );
-//       }
-//     }, 200);
-//     return () => clearTimeout(timer);
-//   }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (pauseModalRef.current && window.bootstrap?.Modal) {
+        pauseModalInstanceRef.current = new window.bootstrap.Modal(
+          pauseModalRef.current,
+          {
+            backdrop: "static",
+            keyboard: false,
+          }
+        );
+      }
+    }, 200);
+    return () => clearTimeout(timer);
+  }, []);
 
-//   useEffect(() => {
-//   const handleFullscreenChange = () => {
-//     // Only trigger pause dialog if not already paused and not already showing the dialog
-//     if (!document.fullscreenElement && !isTestPaused && !showConfirmDialog) {
-//       handlePauseTest();
-//     }
-//   };
+  useEffect(() => {
+  const handleFullscreenChange = () => {
+    // Only trigger pause dialog if not already paused and not already showing the dialog
+    if (!document.fullscreenElement && !isTestPaused && !showConfirmDialog) {
+      handlePauseTest();
+    }
+  };
 
-//   document.addEventListener("fullscreenchange", handleFullscreenChange);
-//   return () => {
-//     document.removeEventListener("fullscreenchange", handleFullscreenChange);
-//   };
-// }, [isTestPaused, showConfirmDialog]);
+  document.addEventListener("fullscreenchange", handleFullscreenChange);
+  return () => {
+    document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  };
+}, [isTestPaused, showConfirmDialog]);
 
-//   useEffect(() => {
-//     if (timeLeft <= 0) {
-//       handleSubmit(true);
-//       return;
-//     }
+  useEffect(() => {
+    if (timeLeft <= 0) {
+      handleSubmit(true);
+      return;
+    }
 
-//     if (timeLeft === 300 && !showTimeWarning) {
-//       setShowTimeWarning(true);
-//       alert("⚠️ 5 minutes remaining!");
-//     }
-//     else if (timeLeft === 60 && !showTimeWarning) {
-//       setShowTimeWarning(true);
-//       alert("⚠️ 1 minute remaining!");
-//     }
-//     else if (timeLeft !== 300 && timeLeft !== 60) {
-//       setShowTimeWarning(false);
-//     }
+    if (timeLeft === 300 && !showTimeWarning) {
+      setShowTimeWarning(true);
+      alert("⚠️ 5 minutes remaining!");
+    }
+    else if (timeLeft === 60 && !showTimeWarning) {
+      setShowTimeWarning(true);
+      alert("⚠️ 1 minute remaining!");
+    }
+    else if (timeLeft !== 300 && timeLeft !== 60) {
+      setShowTimeWarning(false);
+    }
 
-//     if (isPaused) return;
+    if (isPaused) return;
 
-//     const timer = setInterval(() => {
-//       setTimeLeft((prev) => prev - 1);
-//     }, 1000);
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
 
-//     if (timeLeft === 5) {
-//       autoSubmitTimeoutRef.current = setTimeout(() => {
-//         handleSubmit(true);
-//       }, 5000);
-//     }
+    if (timeLeft === 5) {
+      autoSubmitTimeoutRef.current = setTimeout(() => {
+        handleSubmit(true);
+      }, 5000);
+    }
 
-//     return () => {
-//       clearInterval(timer);
-//       if (autoSubmitTimeoutRef.current) {
-//         clearTimeout(autoSubmitTimeoutRef.current);
-//       }
-//     };
-//   }, [timeLeft, isPaused, handleSubmit, showTimeWarning]);
+    return () => {
+      clearInterval(timer);
+      if (autoSubmitTimeoutRef.current) {
+        clearTimeout(autoSubmitTimeoutRef.current);
+      }
+    };
+  }, [timeLeft, isPaused, handleSubmit, showTimeWarning]);
 
-//   const formatTime = (seconds) => {
-//     const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
-//     const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
-//     const s = String(seconds % 60).padStart(2, "0");
-//     return `${h}:${m}:${s}`;
-//   };
+  const formatTime = (seconds) => {
+    const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
+    const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
+    const s = String(seconds % 60).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  };
 
-//   const handleOptionChange = (e) => {
-//     setAnswers((prevAnswers) => ({
-//       ...prevAnswers,
-//       [currentQuestionIndex]: e.target.value,
-//     }));
+  const handleOptionChange = (e) => {
+    setAnswers((prevAnswers) => ({
+      ...prevAnswers,
+      [currentQuestionIndex]: e.target.value,
+    }));
 
-//     if (skippedQuestions.has(currentQuestionIndex)) {
-//       const newSkipped = new Set(skippedQuestions);
-//       newSkipped.delete(currentQuestionIndex);
-//       setSkippedQuestions(newSkipped);
-//     }
-//   };
+    if (skippedQuestions.has(currentQuestionIndex)) {
+      const newSkipped = new Set(skippedQuestions);
+      newSkipped.delete(currentQuestionIndex);
+      setSkippedQuestions(newSkipped);
+    }
+  };
 
-//   const handleNext = () => {
-//     const newVisited = new Set(visitedQuestions);
-//     newVisited.add(currentQuestionIndex);
-//     setVisitedQuestions(newVisited);
+  const handleNext = () => {
+    const newVisited = new Set(visitedQuestions);
+    newVisited.add(currentQuestionIndex);
+    setVisitedQuestions(newVisited);
 
-//     if (!answers[currentQuestionIndex]) {
-//       const newSkipped = new Set(skippedQuestions);
-//       newSkipped.add(currentQuestionIndex);
-//       setSkippedQuestions(newSkipped);
-//     } else {
-//       const newSkipped = new Set(skippedQuestions);
-//       newSkipped.delete(currentQuestionIndex);
-//       setSkippedQuestions(newSkipped);
-//     }
+    if (!answers[currentQuestionIndex]) {
+      const newSkipped = new Set(skippedQuestions);
+      newSkipped.add(currentQuestionIndex);
+      setSkippedQuestions(newSkipped);
+    } else {
+      const newSkipped = new Set(skippedQuestions);
+      newSkipped.delete(currentQuestionIndex);
+      setSkippedQuestions(newSkipped);
+    }
 
-//     if (currentQuestionIndex < currentTest.questions.length - 1) {
-//       setCurrentQuestionIndex(currentQuestionIndex + 1);
-//     }
-//   };
+    if (currentQuestionIndex < currentTest.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
 
-//   const handlePrevious = () => {
-//     if (currentQuestionIndex > 0) {
-//       setCurrentQuestionIndex(currentQuestionIndex - 1);
-//     }
-//   };
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  };
 
-//   const handleSkipQuestion = () => {
-//     const newSkipped = new Set(skippedQuestions);
-//     newSkipped.add(currentQuestionIndex);
-//     setSkippedQuestions(newSkipped);
-//     handleNext();
-//   };
+  const handleSkipQuestion = () => {
+    const newSkipped = new Set(skippedQuestions);
+    newSkipped.add(currentQuestionIndex);
+    setSkippedQuestions(newSkipped);
+    handleNext();
+  };
 
-//   const isFullscreenAvailable = () => {
-//     return (
-//       document.fullscreenEnabled ||
-//       document.webkitFullscreenEnabled ||
-//       document.mozFullScreenEnabled ||
-//       document.msFullscreenEnabled
-//     );
-//   };
+  const isFullscreenAvailable = () => {
+    return (
+      document.fullscreenEnabled ||
+      document.webkitFullscreenEnabled ||
+      document.mozFullScreenEnabled ||
+      document.msFullscreenEnabled
+    );
+  };
 
-//   const toggleFullScreen = () => {
-//     const elem = document.documentElement;
-//     if (!isFullscreenAvailable()) {
-//       alert("Fullscreen is not supported on this device.");
-//       return;
-//     }
+  const toggleFullScreen = () => {
+    const elem = document.documentElement;
+    if (!isFullscreenAvailable()) {
+      alert("Fullscreen is not supported on this device.");
+      return;
+    }
 
-//     if (!document.fullscreenElement) {
-//       elem.requestFullscreen?.() ||
-//         elem.webkitRequestFullscreen?.() ||
-//         elem.mozRequestFullScreen?.() ||
-//         elem.msRequestFullscreen?.();
-//     } else {
-//       document.exitFullscreen?.() ||
-//         document.webkitExitFullscreen?.() ||
-//         document.mozCancelFullScreen?.() ||
-//         document.msExitFullscreen?.();
-//     }
-//   };
+    if (!document.fullscreenElement) {
+      elem.requestFullscreen?.() ||
+        elem.webkitRequestFullscreen?.() ||
+        elem.mozRequestFullScreen?.() ||
+        elem.msRequestFullscreen?.();
+    } else {
+      document.exitFullscreen?.() ||
+        document.webkitExitFullscreen?.() ||
+        document.mozCancelFullScreen?.() ||
+        document.msExitFullscreen?.();
+    }
+  };
 
-//   const handlePauseTest = () => {
-//     setShowConfirmDialog(true);
-//   };
+  const handlePauseTest = () => {
+    setShowConfirmDialog(true);
+  };
 
-//  const confirmPause = async () => {
-//   setShowConfirmDialog(false);
-//   setIsTestPaused(true);
-//   setIsPaused(true);   // <-- stop countdown
+ const confirmPause = async () => {
+  setShowConfirmDialog(false);
+  setIsTestPaused(true);
+  setIsPaused(true);   // <-- stop countdown
 
-//   if (document.fullscreenElement) {
-//     document.exitFullscreen();
-//   }
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  }
 
-//   await dispatch(
-//     pauseTest({
-//       testId: currentTest._id,
-//       timeLeft,
-//       answers,
-//       currentQuestionIndex,
-//       exam,
-//       mockTest: selectedMockTest,
-//     })
-//   );
-// };
+  await dispatch(
+    pauseTest({
+      testId: currentTest._id,
+      timeLeft,
+      answers,
+      currentQuestionIndex,
+      exam,
+      mockTest: selectedMockTest,
+    })
+  );
+};
 
-// const handleResumeTest = () => {
-//   setIsTestPaused(false);
-//   setIsPaused(false);  
-//   if (isFullscreenAvailable()) {
-//     toggleFullScreen();
-//   }
-// };
-//   const getQuestionStatusClass = (idx) => {
-//     if (currentQuestionIndex === idx) return "active";
-//     if (answers[idx]) return "answered";
-//     if (skippedQuestions.has(idx)) return "skipped";
-//     if (visitedQuestions.has(idx)) return "visited";
-//     return "";
-//   };
+const handleResumeTest = () => {
+  setIsTestPaused(false);
+  setIsPaused(false);  
+  if (isFullscreenAvailable()) {
+    toggleFullScreen();
+  }
+};
+  const getQuestionStatusClass = (idx) => {
+    if (currentQuestionIndex === idx) return "active";
+    if (answers[idx]) return "answered";
+    if (skippedQuestions.has(idx)) return "skipped";
+    if (visitedQuestions.has(idx)) return "visited";
+    return "";
+  };
 
-//   if (error) {
-//     return <p style={{ color: "red" }}>❌ Failed to load test: {error}</p>;
-//   }
+  if (error) {
+    return <p style={{ color: "red" }}>❌ Failed to load test: {error}</p>;
+  }
 
-//   if (!currentTest || !currentTest.questions?.length) {
-//     return <p>Loading test...</p>;
-//   }
+  if (!currentTest || !currentTest.questions?.length) {
+    return <p>Loading test...</p>;
+  }
 
-//   // Progress bar color
-//   const progressColor =
-//     progress > 50
-//       ? "#4caf50"
-//       : progress > 20
-//       ? "#ffc107"
-//       : "#f44336";
+  // Progress bar color
+  const progressColor =
+    progress > 50
+      ? "#4caf50"
+      : progress > 20
+      ? "#ffc107"
+      : "#f44336";
 
-//   return (
+  return (
 //     <Fragment>
 //       <MetaData title={"Test"} />
 //       {isTestPaused ? (
@@ -638,299 +638,96 @@
 //   </div>
 // )}
 //     </Fragment>
-//   );
-// };
-
-// export default Test;
-
-import React, {
-  useEffect,
-  useState,
-  Fragment,
-  useCallback,
-  useRef,
-} from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { getTests, submitTest, getResult, pauseTest, resumeTest } from "../actions/productActions";
-import MetaData from "./layouts/MetaData";
-
-const Test = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { exam, mockTest, id } = useParams();
-
-  const { tests, error } = useSelector((state) => state.tests);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState({});
-  const [currentTest, setCurrentTest] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isTestPaused, setIsTestPaused] = useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [skippedQuestions, setSkippedQuestions] = useState(new Set());
-  const [visitedQuestions, setVisitedQuestions] = useState(new Set([0]));
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showTimeWarning, setShowTimeWarning] = useState(false);
-  const [isPaletteOpen, setIsPaletteOpen] = useState(false); // mobile drawer
-
-  const autoSubmitTimeoutRef = useRef(null);
-  const selectedExam = location.state?.selectedExam || exam;
-  const selectedMockTest = location.state?.selectedMockTest || mockTest;
-  const isResume = location.state?.isResume;
-
-  // Progress bar
-  const [progress, setProgress] = useState(100);
-
-  // Submit Test
-  const handleSubmit = useCallback(async (isAutoSubmit = false) => {
-    if (!currentTest || !currentTest.questions) return;
-    if (isSubmitting) return;
-
-    try {
-      setIsSubmitting(true);
-      if (autoSubmitTimeoutRef.current) clearTimeout(autoSubmitTimeoutRef.current);
-
-      const formattedAnswers = currentTest.questions.map((q, i) => ({
-        question: q.questionText,
-        selectedOption: answers[i] || "Not Attempted",
-        isCorrect: answers[i] === q.answer,
-      }));
-
-      const payload = {
-        testId: currentTest._id,
-        answers: formattedAnswers,
-        timeTaken: currentTest.timeDuration * 60 - timeLeft,
-      };
-
-      if (isAutoSubmit) alert("⏰ Time's up! Submitting your test automatically.");
-
-      await dispatch(submitTest(payload));
-      localStorage.removeItem("pausedTest");
-
-      if (document.fullscreenElement) {
-        await document.exitFullscreen?.();
-      }
-
-      await dispatch(getResult(currentTest._id));
-      navigate(`/${selectedExam}/${selectedMockTest}/test/result/${currentTest._id}`);
-    } catch (err) {
-      navigate(`/${selectedExam}/${selectedMockTest}/test/result/${currentTest._id}`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [currentTest, answers, timeLeft, dispatch, navigate, selectedExam, selectedMockTest, isSubmitting]);
-
-  // Load Test
-  useEffect(() => {
-    const test = tests.find((t) => t._id === id);
-    if (test) {
-      setCurrentTest(test);
-
-      if (isResume) {
-        dispatch(resumeTest(test._id)).then((res) => {
-          if (res.success) {
-            const attempt = res.attempt;
-            setTimeLeft(attempt.timeLeft || test.timeDuration * 60);
-            setAnswers(
-              attempt.answers?.reduce((acc, ans, idx) => {
-                acc[idx] = ans.selectedOption === "Not Attempted" ? "" : ans.selectedOption;
-                return acc;
-              }, {}) || {}
-            );
-            setCurrentQuestionIndex(attempt.currentQuestionIndex || 0);
-          }
-        });
-      } else {
-        setTimeLeft(test.timeDuration * 60);
-      }
-    }
-  }, [tests, id, isResume, dispatch]);
-
-  useEffect(() => {
-    if (exam) dispatch(getTests(exam));
-  }, [dispatch, exam]);
-
-  useEffect(() => {
-    setProgress(
-      currentTest ? Math.max(0, (timeLeft / (currentTest.timeDuration * 60)) * 100) : 100
-    );
-  }, [timeLeft, currentTest]);
-
-  // Countdown
-  useEffect(() => {
-    if (timeLeft <= 0) {
-      handleSubmit(true);
-      return;
-    }
-
-    if ((timeLeft === 300 || timeLeft === 60) && !showTimeWarning) {
-      setShowTimeWarning(true);
-      alert(timeLeft === 300 ? "⚠️ 5 minutes remaining!" : "⚠️ 1 minute remaining!");
-    }
-
-    if (isPaused) return;
-    const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
-
-    if (timeLeft === 5) {
-      autoSubmitTimeoutRef.current = setTimeout(() => handleSubmit(true), 5000);
-    }
-
-    return () => {
-      clearInterval(timer);
-      if (autoSubmitTimeoutRef.current) clearTimeout(autoSubmitTimeoutRef.current);
-    };
-  }, [timeLeft, isPaused, handleSubmit, showTimeWarning]);
-
-  // Handlers
-  const handleOptionChange = (e) => {
-    setAnswers({ ...answers, [currentQuestionIndex]: e.target.value });
-  };
-
-  const handleNext = () => {
-    if (currentQuestionIndex < currentTest.questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    }
-  };
-  const handlePrevious = () => {
-    if (currentQuestionIndex > 0) setCurrentQuestionIndex(currentQuestionIndex - 1);
-  };
-
-  const confirmPause = async () => {
-    setShowConfirmDialog(false);
-    setIsTestPaused(true);
-    setIsPaused(true);
-
-    if (document.fullscreenElement) document.exitFullscreen();
-    await dispatch(pauseTest({ testId: currentTest._id, timeLeft, answers, currentQuestionIndex }));
-  };
-
-  const handleResumeTest = () => {
-    setIsTestPaused(false);
-    setIsPaused(false);
-  };
-
-  const formatTime = (s) => {
-    const h = String(Math.floor(s / 3600)).padStart(2, "0");
-    const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
-    const sec = String(s % 60).padStart(2, "0");
-    return `${h}:${m}:${sec}`;
-  };
-
-  const getQuestionStatusClass = (idx) => {
-    if (currentQuestionIndex === idx) return "active";
-    if (answers[idx]) return "answered";
-    if (skippedQuestions.has(idx)) return "skipped";
-    if (visitedQuestions.has(idx)) return "visited";
-    return "";
-  };
-
-  if (error) return <p style={{ color: "red" }}>❌ Failed to load test: {error}</p>;
-  if (!currentTest || !currentTest.questions?.length) return <p>Loading test...</p>;
-
-  const progressColor = progress > 50 ? "#4caf50" : progress > 20 ? "#ffc107" : "#f44336";
-
-  return (
-    <Fragment>
+ <Fragment>
       <MetaData title={"Test"} />
-
       {isTestPaused ? (
+        // ✅ same paused overlay
         <div className="paused-test-overlay">
           <div className="pause-content">
             <h2><i className="fas fa-pause-circle"></i> Test Paused</h2>
             <p>💾 Progress saved. ⏳ Resume anytime.</p>
-            <button className="btn btn-primary btn-lg" onClick={handleResumeTest}>▶ Resume Test</button>
+            <button className="btn btn-primary btn-lg" onClick={handleResumeTest}>
+              <i className="fas fa-play"></i> Resume Test
+            </button>
           </div>
         </div>
       ) : (
-        <div className="test-container">
-          {/* Header */}
-          <div className="test-header">
-            <h5>Question {currentQuestionIndex + 1} / {currentTest.questions.length}</h5>
-            <div className="timer">
-              <span style={{ color: progressColor }}>
-                <i className="fas fa-clock"></i> {formatTime(timeLeft)}
-              </span>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width: `${progress}%`, background: progressColor }} />
-              </div>
-            </div>
-            <button className="btn btn-warning btn-sm" onClick={() => setShowConfirmDialog(true)}>
-              ⏸ Pause
-            </button>
-            <button className="btn btn-info btn-sm mobile-palette-btn" onClick={() => setIsPaletteOpen(!isPaletteOpen)}>
-              📋 Palette
-            </button>
-          </div>
+        <div className="test-container-fullscreen">
+          {currentTest && (
+            <div className="test-layout">
+              {/* Main question area */}
+              <div className="question-area">
+                {/* Sticky header for mobile */}
+                <div className="test-header">
+                  <h5>
+                    Question {currentQuestionIndex + 1} / {currentTest.questions.length}
+                  </h5>
+                  <div className="mobile-timer">
+                    ⏰ {formatTime(timeLeft)}
+                    <button className="btn btn-sm btn-warning" onClick={handlePauseTest}>
+                      <i className="fas fa-pause"></i>
+                    </button>
+                  </div>
+                </div>
 
-          {/* Question */}
-          <div className="question-box">
-            <p className="question-text">{currentTest.questions[currentQuestionIndex].questionText}</p>
-            <div className="options">
-              {currentTest.questions[currentQuestionIndex].options.map((opt, idx) => (
-                <label key={idx} className={`option ${answers[currentQuestionIndex] === opt ? "selected" : ""}`}>
-                  <input
-                    type="radio"
-                    name={`q${currentQuestionIndex}`}
-                    value={opt}
-                    checked={answers[currentQuestionIndex] === opt}
-                    onChange={handleOptionChange}
-                  />
-                  {opt}
-                </label>
-              ))}
-            </div>
-          </div>
+                {/* Question */}
+                <div className="question-content">
+                  <p className="question-text">
+                    {currentTest.questions[currentQuestionIndex].questionText}
+                  </p>
+                  <div className="options-grid">
+                    {currentTest.questions[currentQuestionIndex].options.map((option, idx) => (
+                      <label
+                        key={idx}
+                        className={`option-item ${answers[currentQuestionIndex] === option ? "selected" : ""}`}
+                      >
+                        <input
+                          type="radio"
+                          name={`q${currentQuestionIndex}`}
+                          value={option}
+                          checked={answers[currentQuestionIndex] === option}
+                          onChange={handleOptionChange}
+                        />
+                        {option}
+                      </label>
+                    ))}
+                  </div>
+                </div>
 
-          {/* Navigation */}
-          <div className="nav-buttons">
-            <button className="btn btn-secondary" onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
-              ⬅ Prev
-            </button>
-            {currentQuestionIndex === currentTest.questions.length - 1 ? (
-              <button className="btn btn-success" onClick={handleSubmit} disabled={isSubmitting}>
-                ✅ {isSubmitting ? "Submitting..." : "Submit"}
-              </button>
-            ) : (
-              <button className="btn btn-primary" onClick={handleNext}>Next ➡</button>
-            )}
-          </div>
-
-          {/* Palette Drawer (mobile) */}
-          {isPaletteOpen && (
-            <div className="palette-drawer">
-              <h5>Question Palette</h5>
-              <div className="palette-grid">
-                {currentTest.questions.map((_, idx) => (
-                  <button
-                    key={idx}
-                    className={`palette-btn ${getQuestionStatusClass(idx)}`}
-                    onClick={() => {
-                      setCurrentQuestionIndex(idx);
-                      setIsPaletteOpen(false);
-                    }}
-                  >
-                    {idx + 1}
+                {/* Sticky footer navigation on mobile */}
+                <div className="mobile-footer-nav">
+                  <button onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
+                    ◀ Prev
                   </button>
-                ))}
+                  {currentQuestionIndex === currentTest.questions.length - 1 ? (
+                    <button className="btn-success" onClick={handleSubmit} disabled={isSubmitting}>
+                      {isSubmitting ? "Submitting..." : "Submit"}
+                    </button>
+                  ) : (
+                    <button className="btn-primary" onClick={handleNext}>
+                      Next ▶
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Palette - Desktop: right column, Mobile: collapsible drawer */}
+              <div className="question-palette-area">
+                <h5>Question Palette</h5>
+                <div className="question-grid">
+                  {currentTest.questions.map((_, idx) => (
+                    <button
+                      key={idx}
+                      className={`palette-btn ${getQuestionStatusClass(idx)}`}
+                      onClick={() => setCurrentQuestionIndex(idx)}
+                    >
+                      {idx + 1}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Confirm Pause Modal */}
-      {showConfirmDialog && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h2>Pause Test</h2>
-            <p>💾 Your progress will be saved. ▶ You can resume later.</p>
-            <div className="modal-actions">
-              <button className="btn btn-secondary" onClick={() => setShowConfirmDialog(false)}>Continue</button>
-              <button className="btn btn-warning" onClick={confirmPause}>Pause Now</button>
-            </div>
-          </div>
         </div>
       )}
     </Fragment>
