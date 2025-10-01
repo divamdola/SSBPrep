@@ -1,5 +1,6 @@
 import React, { Fragment, useEffect, useState } from "react";
 import MetaData from "./layouts/MetaData";
+import axiosInstance from "../utils/axiosInstance";
 
 const StudyMaterial = () => {
   const [booksByCategory, setBooksByCategory] = useState({});
@@ -8,8 +9,7 @@ const StudyMaterial = () => {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await fetch("/api/v1/products");
-        const data = await response.json();
+        const { data } = await axiosInstance.get("/products");
 
         if (data.success) {
           setBooksByCategory(data.booksByCategory);
