@@ -107,24 +107,26 @@ exports.pauseTest = async (req, res) => {
     const { testId, timeLeft, answers, currentQuestionIndex } = req.body;
     const userId = req.user._id;
 
-    let attempt = await TestAttempt.findOne({ test: testId, user: userId });
-    if (!attempt) {
-      attempt = new TestAttempt({ test: testId, user: userId });
-    }
-
-    attempt.answers = answers;
-attempt.timeLeft = timeLeft;
-attempt.paused = true;
-attempt.currentQuestionIndex = currentQuestionIndex;
-
-
-    await attempt.save();
+    // ✅ Use findOneAndUpdate with upsert
+    const attempt = await TestAttempt.findOneAndUpdate(
+      { test: testId, user: userId },
+      {
+        $set: {
+          answers,
+          timeLeft,
+          currentQuestionIndex,
+          paused: true, // ✅ ensure it's stored
+        },
+      },
+      { new: true, upsert: true }
+    );
 
     res.status(200).json({ success: true, attempt });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 exports.getResult = catchAsyncErrors(async (req, res, next) => {
   const result = await TestAttempt.findOne({ test: req.params.test_id, user: req.user._id }).populate("test");

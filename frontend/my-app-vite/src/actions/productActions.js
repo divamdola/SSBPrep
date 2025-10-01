@@ -161,31 +161,35 @@ export const getResult = (testId) => async (dispatch) => {
   }
 };
 
-exports.pauseTest = async (req, res) => {
-  try {
-    const { testId, timeLeft, answers, currentQuestionIndex } = req.body;
-    const userId = req.user._id;
+export const pauseTest = ({ testId, timeLeft, answers, currentQuestionIndex, exam, mockTest }) => 
+  async (dispatch) => {
+    try {
+      await axiosInstance.post("/test/pause", {
+        testId,
+        timeLeft,
+        answers,
+        currentQuestionIndex,
+      });
 
-    // ✅ Use findOneAndUpdate with upsert
-    const attempt = await TestAttempt.findOneAndUpdate(
-      { test: testId, user: userId },
-      {
-        $set: {
-          answers,
+      // Save locally
+      localStorage.setItem(
+        "pausedTest",
+        JSON.stringify({
+          testId,
+          exam,
+          mockTest,
           timeLeft,
+          answers,
           currentQuestionIndex,
-          paused: true, // ✅ ensure it's stored
-        },
-      },
-      { new: true, upsert: true }
-    );
+        })
+      );
 
-    res.status(200).json({ success: true, attempt });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
+      return { success: true };
+    } catch (error) {
+      console.error("Pause Test Error:", error.response?.data || error);
+      return { success: false, message: error.response?.data?.message || "Failed to pause test" };
+    }
+  };
 
 export const resumeTest = (testId) => async (dispatch) => {
   try {
