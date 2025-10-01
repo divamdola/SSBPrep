@@ -1406,7 +1406,7 @@ import React, {
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { getTests, submitTest, pauseTest, resumeTest } from "../actions/testActions";
+import { getTests, submitTest, pauseTest, resumeTest } from "../actions/productActions";
 import MetaData from "./layouts/MetaData";
 
 const TestStyles = () => (
