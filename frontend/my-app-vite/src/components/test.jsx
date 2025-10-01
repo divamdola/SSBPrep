@@ -647,7 +647,7 @@
 import React, { useEffect, useState, Fragment, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { getTests, submitTest, pauseTest, resumeTest } from "../../actions/productActions"; // Adjust path if needed
+import { getTests, submitTest, pauseTest, resumeTest } from "../actions/productActions"; // Adjust path if needed
 
 // --- HELPER COMPONENTS & CUSTOM HOOKS (Assumed to be in the same file or imported) ---
 
