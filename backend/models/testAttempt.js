@@ -5,6 +5,8 @@ const testAttemptSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
     test: { type: mongoose.Schema.ObjectId, ref: "Test", required: true },
+    
+    // This field is for the FINAL submitted answers and score
     answers: [
       {
         question: { type: String, required: true },
@@ -19,13 +21,15 @@ const testAttemptSchema = new mongoose.Schema(
     timeTaken: { type: Number, required: true, default: 0 }, // in seconds
     attemptedAt: { type: Date, default: Date.now },
 
-    // 👇 New fields
+    // --- Fields for Pause/Resume Feature ---
     paused: { type: Boolean, default: false },
     currentQuestionIndex: { type: Number, default: 0 },
     timeLeft: { type: Number, default: 0 },
+    
+    // New field to store the in-progress answers object { "0": "Option A" }
+    inProgressAnswers: { type: Object, default: {} }, 
   },
   { timestamps: true }
 );
-
 
 module.exports = mongoose.model("TestAttempt", testAttemptSchema);

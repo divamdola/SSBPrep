@@ -651,12 +651,27 @@ import React, {
   useCallback,
   useRef,
 } from "react";
+
 // --- MOCK IMPLEMENTATIONS & PLACEHOLDERS ---
 
 // Mock Redux hooks
-const useDispatch = () => (action) => console.log("Dispatched Action:", action);
+const useDispatch = () => (action) => {
+  console.log("Dispatched Action:", action);
+  // Mock the async action response for resumeTest
+  if (action.type === 'RESUME_TEST') {
+    return Promise.resolve({ 
+      success: true, 
+      attempt: {
+        timeLeft: 500, // Example time left
+        inProgressAnswers: { 0: "Option A0", 2: "Correct Option C2" }, // Example saved answers
+        currentQuestionIndex: 2 // Example saved index
+      }
+    });
+  }
+  return Promise.resolve();
+};
+
 const useSelector = (selector) => {
-    // This mock state simulates what your Redux store might provide.
     const mockState = {
         tests: {
             tests: [{
@@ -677,13 +692,13 @@ const useSelector = (selector) => {
 // Mock React Router DOM hooks
 const useNavigate = () => (path) => console.log(`Navigating to: ${path}`);
 const useParams = () => ({ exam: "demo-exam", mockTest: "demo-mock-test", id: "123" });
-const useLocation = () => ({ state: { isResume: false } });
+// Set isResume to true to test the resume logic
+const useLocation = () => ({ state: { isResume: true } });
 
 
-// Placeholder actions and component for demonstration purposes
+// Placeholder actions and component
 const getTests = (exam) => ({ type: 'GET_TESTS', payload: exam });
 const submitTest = (payload) => ({ type: 'SUBMIT_TEST', payload });
-const getResult = (id) => ({ type: 'GET_RESULT', payload: id });
 const pauseTest = (payload) => ({ type: 'PAUSE_TEST', payload });
 const resumeTest = (id) => ({ type: 'RESUME_TEST', payload: id });
 const MetaData = ({ title }) => <title>{title}</title>;
@@ -700,7 +715,6 @@ const formatTime = (seconds) => {
 
 // --- CUSTOM HOOKS ---
 
-// FIX: Refactored useTimer for more explicit control (start, pause, resume)
 const useTimer = (onTimeout) => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isPaused, setIsPaused] = useState(true);
@@ -781,10 +795,9 @@ const useFullscreen = (onExit) => {
 };
 
 
-// --- STYLES COMPONENT (INLINED AND ENHANCED FOR DESKTOP) ---
+// --- STYLES COMPONENT ---
 const TestStyles = () => (
     <style>{`
-        /* General Test Container Styles */
         :root {
           --primary-color: #007bff;
           --primary-light: #e3f2fd;
@@ -796,32 +809,25 @@ const TestStyles = () => (
           --dark-gray: #424242;
           --text-color: #212121;
         }
-
-        /* NEW: Universal box-sizing for predictable layouts */
         *, *::before, *::after {
             box-sizing: border-box;
         }
-
         .test-container-fullscreen {
           width: 100%;
-          min-height: 100vh; /* ENHANCEMENT: Use min-height */
+          min-height: 100vh;
           display: flex;
           flex-direction: column;
           background: var(--light-gray);
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
-
         .test-layout {
           display: flex;
           flex-grow: 1;
           overflow: hidden;
-          /* ENHANCEMENT: Center the layout on desktop and give it a max-width */
           width: 100%;
           max-width: 1400px;
           margin: 0 auto;
         }
-
-        /* Header Styles */
         .test-header {
           display: flex;
           justify-content: space-between;
@@ -830,7 +836,6 @@ const TestStyles = () => (
           background: #ffffff;
           border-bottom: 1px solid var(--medium-gray);
           flex-shrink: 0;
-          /* ENHANCEMENT: Add a subtle shadow to the header */
           box-shadow: 0 2px 4px rgba(0,0,0,0.05);
           position: sticky;
           top: 0;
@@ -862,36 +867,31 @@ const TestStyles = () => (
           border-radius: 3px;
           transition: width 0.5s ease-in-out, background 0.5s;
         }
-
-        /* Question Area */
         .question-area {
           flex-grow: 1;
-          padding: 32px; /* ENHANCEMENT: Increased padding for desktop */
+          padding: 32px;
           display: flex;
           flex-direction: column;
           overflow-y: auto;
         }
         .question-container {
           background: #fff;
-          padding: 32px; /* ENHANCEMENT: Increased padding */
+          padding: 32px;
           border-radius: 8px;
           box-shadow: 0 4px 12px rgba(0,0,0,0.05);
           margin-bottom: 24px;
         }
         .question-text {
-          font-size: 1.35rem; /* ENHANCEMENT: Larger font for better readability on desktop */
+          font-size: 1.35rem;
           line-height: 1.6;
-          margin-bottom: 32px; /* ENHANCEMENT: More space */
+          margin-bottom: 32px;
           color: var(--text-color);
         }
-
-        /* Options Grid */
         .options-grid {
           display: grid;
           grid-template-columns: 1fr;
           gap: 15px;
         }
-        /* DESKTOP ENHANCEMENT: 2-column layout for options on wider screens */
         @media (min-width: 1024px) {
             .options-grid {
                 grid-template-columns: 1fr 1fr;
@@ -911,7 +911,7 @@ const TestStyles = () => (
         .option-item:hover {
           background: #f0f8ff;
           border-color: var(--primary-color);
-          transform: translateY(-2px); /* ENHANCEMENT: Hover effect */
+          transform: translateY(-2px);
         }
         .option-item.selected {
           background: var(--primary-light);
@@ -925,20 +925,16 @@ const TestStyles = () => (
           height: 18px;
           accent-color: var(--primary-color);
         }
-
-        /* Navigation Buttons */
         .navigation-buttons {
           display: flex;
           justify-content: space-between;
-          padding: 24px; /* ENHANCEMENT: More padding */
+          padding: 24px;
           background: #fff;
           border-radius: 8px;
           box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-
-        /* Question Palette (Desktop) */
         .question-palette-area {
-          width: 320px; /* ENHANCEMENT: Slightly wider */
+          width: 320px;
           flex-shrink: 0;
           background: #ffffff;
           border-left: 1px solid var(--medium-gray);
@@ -964,7 +960,6 @@ const TestStyles = () => (
         .legend-color.answered { background-color: var(--success-color); }
         .legend-color.skipped { background-color: var(--danger-color); }
         .legend-color.visited { background-color: #90caf9; }
-
         .question-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
@@ -991,10 +986,7 @@ const TestStyles = () => (
             font-weight: bold;
             transform: scale(1.1);
         }
-
         .palette-toggle, .palette-close { display: none; }
-
-        /* Pause Screen & Modals */
         .paused-test-overlay, .custom-modal-overlay {
           position: fixed; top: 0; left: 0;
           width: 100%; height: 100%;
@@ -1013,7 +1005,7 @@ const TestStyles = () => (
           box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
         .custom-modal-glass {
-            background: rgba(255, 255, 255, 0.7); /* ENHANCEMENT: Less transparent */
+            background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -1025,7 +1017,7 @@ const TestStyles = () => (
             justify-content: center;
         }
         .custom-modal-actions .custom-btn {
-            padding: 12px 24px; /* ENHANCEMENT: Larger buttons */
+            padding: 12px 24px;
             border-radius: 8px;
             border: none;
             cursor: pointer;
@@ -1037,12 +1029,9 @@ const TestStyles = () => (
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         .custom-btn-cancel { background-color: #f0f0f0; }
-        .custom-btn-confirm { background-color: var(--danger-color); color: white; } /* Changed to danger for pausing */
-
-
-        /* Generic Button Styles */
+        .custom-btn-confirm { background-color: var(--danger-color); color: white; }
         .btn {
-          padding: 10px 20px; /* ENHANCEMENT: Larger buttons */
+          padding: 10px 20px;
           border-radius: 8px;
           border: 1px solid transparent;
           cursor: pointer;
@@ -1062,34 +1051,29 @@ const TestStyles = () => (
         .btn-success { background-color: var(--success-color); color: white; }
         .btn-outline-warning { border-color: var(--warning-color); color: var(--warning-color); }
         .btn-outline-warning:hover { background-color: var(--warning-color); color: white; }
-
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-
-        /* MOBILE RESPONSIVE STYLES (NO CHANGES NEEDED HERE) */
         @media (max-width: 768px) {
             .test-layout {
               flex-direction: column;
-              max-width: 100%; /* Mobile should be full-width */
+              max-width: 100%;
             }
             .hide-mobile { display: none; }
             .test-header { padding: 10px 15px; }
             .question-area {
                 padding: 15px;
-                padding-bottom: 80px; /* Space for fixed palette toggle */
+                padding-bottom: 80px;
             }
             .question-container { padding: 16px; }
             .question-text { font-size: 1.1rem; margin-bottom: 24px; }
             .navigation-buttons { padding: 16px; }
-
-            /* Palette becomes a bottom drawer on mobile */
             .question-palette-area {
               position: fixed;
               bottom: 0; left: 0;
               width: 100%;
-              height: 70vh; /* Drawer height */
+              height: 70vh;
               transform: translateY(100%);
               transition: transform 0.3s ease-in-out;
               z-index: 900;
@@ -1136,13 +1120,13 @@ const TestHeader = ({ timeLeft, totalTime, onPause, currentQuestionIndex, totalQ
   const progressColor = progress > 50 ? "#4caf50" : progress > 20 ? "#ffc107" : "#f44336";
   return (
     <header className="test-header">
-      <h5 className="question-number"><i className="fas fa-question-circle"></i> Question {currentQuestionIndex + 1} of {totalQuestions}</h5>
+      <h5 className="question-number">Question {currentQuestionIndex + 1} of {totalQuestions}</h5>
       <div className="header-controls">
         <div className="timer">
-          <span style={{ fontWeight: 600, color: progressColor }}><i className="fas fa-clock"></i> {formatTime(timeLeft)}</span>
+          <span style={{ fontWeight: 600, color: progressColor }}>{formatTime(timeLeft)}</span>
           <div className="progress-bar-container"><div className="progress-bar-fill" style={{ width: `${progress}%`, background: progressColor }} /></div>
         </div>
-        <button className="btn btn-outline-warning" onClick={onPause} title="Pause Test"><i className="fas fa-pause"></i><span className="hide-mobile"> Pause</span></button>
+        <button className="btn btn-outline-warning" onClick={onPause} title="Pause Test"><span className="hide-mobile">Pause</span></button>
       </div>
     </header>
   );
@@ -1162,11 +1146,11 @@ const QuestionContent = ({ question, currentIndex, totalQuestions, selectedAnswe
         </div>
       </div>
       <nav className="navigation-buttons">
-        <button className="btn btn-secondary" onClick={onPrevious} disabled={currentIndex === 0}><i className="fas fa-arrow-left"></i> Previous</button>
+        <button className="btn btn-secondary" onClick={onPrevious} disabled={currentIndex === 0}>Previous</button>
         {currentIndex === totalQuestions - 1 ? (
-          <button className="btn btn-success" onClick={() => onSubmit(false)} disabled={isSubmitting}><i className="fas fa-check-circle"></i> {isSubmitting ? "Submitting..." : "Submit"}</button>
+          <button className="btn btn-success" onClick={() => onSubmit(false)} disabled={isSubmitting}>{isSubmitting ? "Submitting..." : "Submit"}</button>
         ) : (
-          <button className="btn btn-primary" onClick={onNext}>Next <i className="fas fa-arrow-right"></i></button>
+          <button className="btn btn-primary" onClick={onNext}>Next</button>
         )}
       </nav>
     </main>
@@ -1184,11 +1168,11 @@ const QuestionPalette = ({ questions, currentIndex, answers, skipped, visited, o
     const answeredCount = Object.values(answers).filter(Boolean).length;
     return (
         <>
-            <div className="palette-toggle" onClick={() => setIsOpen(!isOpen)}><i className="fas fa-th"></i> Palette ({answeredCount}/{questions.length})</div>
+            <div className="palette-toggle" onClick={() => setIsOpen(!isOpen)}>Palette ({answeredCount}/{questions.length})</div>
             <aside className={`question-palette-area ${isOpen ? 'open' : ''}`}>
                 <div className="palette-content">
                     <button className="palette-close" onClick={() => setIsOpen(false)}>&times;</button>
-                    <h5 className="palette-title"><i className="fas fa-th"></i> Question Palette</h5>
+                    <h5 className="palette-title">Question Palette</h5>
                     <div className="palette-legend">
                         <div><span className="legend-color answered"></span>Answered</div>
                         <div><span className="legend-color skipped"></span>Not Answered</div>
@@ -1209,9 +1193,9 @@ const QuestionPalette = ({ questions, currentIndex, answers, skipped, visited, o
 const PauseScreen = ({ onResume }) => (
   <div className="paused-test-overlay">
     <div className="pause-content">
-      <h2><i className="fas fa-pause-circle"></i> Test Paused</h2>
+      <h2>Test Paused</h2>
       <p>Your progress is saved. Resume whenever you're ready.</p>
-      <button className="btn btn-primary btn-lg" onClick={onResume} autoFocus><i className="fas fa-play"></i> Resume Test</button>
+      <button className="btn btn-primary btn-lg" onClick={onResume} autoFocus>Resume Test</button>
     </div>
   </div>
 );
@@ -1219,7 +1203,6 @@ const PauseScreen = ({ onResume }) => (
 const ConfirmationModal = ({ onConfirm, onCancel }) => (
   <div className="custom-modal-overlay">
     <div className="custom-modal-glass">
-      <div className="custom-modal-icon"><i className="fas fa-pause-circle"></i></div>
       <h2>Pause Test?</h2>
       <p>Your answers and remaining time will be saved. You can resume this test later.</p>
       <div className="custom-modal-actions">
@@ -1251,13 +1234,11 @@ const Test = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isResume = location.state?.isResume;
   
-  // FIX: Ref to prevent pause race condition on fullscreen exit
   const isPausingIntentionally = useRef(false);
   
   const { isFullscreen, toggleFullScreen, isFullscreenAvailable } = useFullscreen(() => {
-    // FIX: Check the intentional pause ref before auto-pausing
     if (isPausingIntentionally.current) {
-        isPausingIntentionally.current = false; // Reset the flag
+        isPausingIntentionally.current = false;
         return;
     }
     if (!isTestPaused && !showConfirmDialog) handlePauseTest();
@@ -1288,7 +1269,7 @@ const Test = () => {
       alert("Failed to submit test. Please try again.");
       setIsSubmitting(false);
     }
-  }, [ currentTest, isSubmitting, answers, navigate, exam, mockTest, dispatch, isFullscreen, timeLeft ]); // FIX: Added timeLeft dependency
+  }, [ currentTest, isSubmitting, answers, navigate, exam, mockTest, dispatch, isFullscreen, timeLeft ]);
 
   useEffect(() => {
     if (exam) dispatch(getTests(exam));
@@ -1301,21 +1282,31 @@ const Test = () => {
     const initialTime = test.timeDuration * 60;
 
     if (isResume) {
-      dispatch(resumeTest(test._id)).then((res) => start(res?.attempt?.timeLeft || initialTime));
+      console.log("Attempting to resume test...");
+      dispatch(resumeTest(test._id)).then((res) => {
+        if (res && res.attempt) {
+          console.log("Resume data received:", res.attempt);
+          start(res.attempt.timeLeft || initialTime);
+          setAnswers(res.attempt.inProgressAnswers || {});
+          setCurrentQuestionIndex(res.attempt.currentQuestionIndex || 0);
+        } else {
+          start(initialTime);
+        }
+      });
     } else {
-      start(initialTime); // FIX: Use the new start function
+      start(initialTime);
     }
     if (window.innerWidth > 768 && isFullscreenAvailable()) toggleFullScreen();
-  }, [tests, id, isResume, dispatch, start, isFullscreenAvailable, toggleFullScreen]); // FIX: Use 'start' in dependency array
+  }, [tests, id, isResume, dispatch, start, isFullscreenAvailable, toggleFullScreen]);
 
   const handlePauseTest = () => setShowConfirmDialog(true);
 
   const confirmPause = async () => {
     setShowConfirmDialog(false);
     setIsTestPaused(true);
-    pause(); // FIX: Use the new pause function
+    pause();
     
-    isPausingIntentionally.current = true; // FIX: Signal that we are pausing on purpose
+    isPausingIntentionally.current = true;
     if (isFullscreen) await document.exitFullscreen();
 
     dispatch(pauseTest({ testId: currentTest._id, timeLeft, answers, currentQuestionIndex }));
@@ -1323,7 +1314,7 @@ const Test = () => {
 
   const handleResumeTest = () => {
     setIsTestPaused(false);
-    resume(); // FIX: Use the new resume function
+    resume();
     if (isFullscreenAvailable()) toggleFullScreen();
   };
 

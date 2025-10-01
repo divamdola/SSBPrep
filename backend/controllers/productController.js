@@ -105,19 +105,24 @@ exports.getTest = catchAsyncErrors(async (req, res, next) => {
 exports.pauseTest = async (req, res) => {
   try {
     const { testId, timeLeft, answers, currentQuestionIndex } = req.body;
-    const userId = req.user?._id;
+    const userId = req.user?._id; // Assuming user is available from auth middleware
 
-    console.log("PauseTest Called:", { testId, userId, timeLeft, currentQuestionIndex });
+    if (!userId) {
+        return res.status(401).json({ success: false, message: "User not authenticated" });
+    }
 
     const attempt = await TestAttempt.findOneAndUpdate(
       { test: testId, user: userId },
       {
-        $set: { answers, timeLeft, currentQuestionIndex, paused: true },
+        $set: { 
+          timeLeft, 
+          currentQuestionIndex, 
+          inProgressAnswers: answers, // Use the new field
+          paused: true 
+        },
       },
-      { new: true, upsert: true }
+      { new: true, upsert: true } // Creates a new attempt if one doesn't exist
     );
-
-    console.log("Updated Attempt:", attempt);
 
     res.status(200).json({ success: true, attempt });
   } catch (error) {
@@ -125,6 +130,7 @@ exports.pauseTest = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 
 
@@ -148,11 +154,14 @@ exports.resumeTest = async (req, res) => {
 
     let attempt = await TestAttempt.findOne({ test: testId, user: userId });
 
-    if (!attempt) {
-      return res.status(404).json({ success: false, message: "No paused attempt found" });
+    if (!attempt || !attempt.paused) {
+      return res.status(404).json({ success: false, message: "No paused attempt found for this test." });
     }
-
-    attempt.paused = false; // 👈 clear pause flag
+    
+    // Optional: You might not want to set paused to false here.
+    // See the discussion in the previous response about UX improvements.
+    // For now, this logic matches the original intent.
+    attempt.paused = false;
     await attempt.save();
 
     res.status(200).json({ success: true, attempt });
