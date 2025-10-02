@@ -4,11 +4,16 @@ import React, {
   Fragment,
   useCallback,
   useRef,
-  memo
+  memo,
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { getTests, submitTest, pauseTest, resumeTest } from "../actions/productActions";
+import {
+  getTests,
+  submitTest,
+  pauseTest,
+  resumeTest,
+} from "../actions/productActions";
 import MetaData from "./layouts/MetaData";
 
 // --- Custom Styles Component ---
@@ -172,7 +177,6 @@ const TestStyles = () => (
       order: 1;
     }
     
-    /* MODIFIED: Palette Styles */
     .palette-info {
       background-color: var(--light-gray);
       padding: 12px;
@@ -215,7 +219,7 @@ const TestStyles = () => (
     }
     .palette-btn {
       aspect-ratio: 1 / 1;
-      border-radius: var(--border-radius); /* MODIFIED */
+      border-radius: var(--border-radius);
       border: 2px solid transparent;
       background: var(--medium-gray);
       color: var(--dark-gray);
@@ -321,10 +325,31 @@ const TestStyles = () => (
     /* --- MOBILE STYLES --- */
     @media (max-width: 1023px) {
       .test-layout { flex-direction: column; overflow-y: auto; }
-      .question-area { padding: 16px 12px; overflow-y: visible; width: 100%; order: 1; }
+      
+      /* --- START OF CHANGES --- */
+
+      /* MODIFIED: Make the Question Palette appear FIRST on mobile */
+      .question-palette-area { 
+        width: 100%; 
+        border-left: none; 
+        border-bottom: 1px solid var(--medium-gray); /* Change border to bottom */
+        padding: 16px 12px; 
+        flex-shrink: 0; 
+        order: 1; /* Palette is now first */
+      }
+      
+      /* MODIFIED: Make the Question Area appear SECOND on mobile */
+      .question-area { 
+        padding: 16px 12px; 
+        overflow-y: visible; 
+        width: 100%; 
+        order: 2; /* Question area is now second */
+      }
+      
+      /* --- END OF CHANGES --- */
+
       .question-container { padding: 18px; margin-bottom: 16px; }
       .question-text { font-size: 1.05rem; margin-bottom: 20px; }
-      .question-palette-area { width: 100%; border-left: none; border-top: 1px solid var(--medium-gray); padding: 16px 12px; flex-shrink: 0; order: 2; }
       .question-palette-area .question-grid { grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); }
       .palette-btn { border-radius: 6px; }
       .navigation-buttons { padding: 12px 16px; border-radius: 0; margin-top: 16px; }
@@ -333,7 +358,7 @@ const TestStyles = () => (
   `}</style>
 );
 
-// Helpers
+// --- Helpers and Custom Hooks (No changes here) ---
 const formatTime = (seconds) => {
   if (isNaN(seconds) || seconds < 0) return "00:00:00";
   const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
@@ -342,12 +367,8 @@ const formatTime = (seconds) => {
   return `${h}:${m}:${s}`;
 };
 
-// --- Custom Hooks ---
-
-// NEW: Fullscreen Hook
 const useFullscreen = (elementRef) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
-
   const enterFullscreen = useCallback(() => {
     const el = elementRef.current;
     if (!el) return;
@@ -361,7 +382,6 @@ const useFullscreen = (elementRef) => {
       el.msRequestFullscreen();
     }
   }, [elementRef]);
-
   const exitFullscreen = useCallback(() => {
     if (document.exitFullscreen) {
       document.exitFullscreen();
@@ -373,15 +393,14 @@ const useFullscreen = (elementRef) => {
       document.msExitFullscreen();
     }
   }, []);
-
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
     document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
-
   return { isFullscreen, enterFullscreen, exitFullscreen };
 };
 
@@ -389,8 +408,12 @@ const useTimer = (initialTime, onTimeout) => {
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [isPaused, setIsPaused] = useState(true);
   const timeoutCallback = useRef(onTimeout);
-  useEffect(() => { timeoutCallback.current = onTimeout; }, [onTimeout]);
-  useEffect(() => { setTimeLeft(initialTime); }, [initialTime]); 
+  useEffect(() => {
+    timeoutCallback.current = onTimeout;
+  }, [onTimeout]);
+  useEffect(() => {
+    setTimeLeft(initialTime);
+  }, [initialTime]);
   useEffect(() => {
     if (isPaused || timeLeft <= 0) return;
     const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
@@ -399,136 +422,231 @@ const useTimer = (initialTime, onTimeout) => {
   useEffect(() => {
     if (timeLeft === 0 && !isPaused) timeoutCallback.current?.();
   }, [timeLeft, isPaused]);
-  const start = useCallback((t) => { setTimeLeft(t); setIsPaused(false); }, []);
+  const start = useCallback((t) => {
+    setTimeLeft(t);
+    setIsPaused(false);
+  }, []);
   const pause = useCallback(() => setIsPaused(true), []);
   const resume = useCallback(() => setIsPaused(false), []);
   return { timeLeft, isPaused, start, pause, resume, setTimeLeft };
 };
 
 const useTestAttempt = (totalQuestions) => {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [answers, setAnswers] = useState({});
-    const [visited, setVisited] = useState(new Set([0])); 
-    const updateAnswer = useCallback((index, answer) => {
-        setAnswers(a => ({ ...a, [index]: answer }));
-    }, []);
-    const handleJump = useCallback((index) => {
-        if (index >= 0 && index < totalQuestions) {
-            setVisited((v) => new Set(v).add(index));
-            setCurrentIndex(index);
-        }
-    }, [totalQuestions]);
-    const handleNext = useCallback(() => handleJump(currentIndex + 1), [currentIndex, handleJump]);
-    const handlePrev = useCallback(() => handleJump(currentIndex - 1), [currentIndex, handleJump]);
-    return { currentIndex, answers, visited, updateAnswer, handleJump, handleNext, handlePrev, setCurrentIndex, setAnswers, setVisited };
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [visited, setVisited] = useState(new Set([0]));
+  const updateAnswer = useCallback((index, answer) => {
+    setAnswers((a) => ({ ...a, [index]: answer }));
+  }, []);
+  const handleJump = useCallback(
+    (index) => {
+      if (index >= 0 && index < totalQuestions) {
+        setVisited((v) => new Set(v).add(index));
+        setCurrentIndex(index);
+      }
+    },
+    [totalQuestions]
+  );
+  const handleNext = useCallback(() => handleJump(currentIndex + 1), [
+    currentIndex,
+    handleJump,
+  ]);
+  const handlePrev = useCallback(() => handleJump(currentIndex - 1), [
+    currentIndex,
+    handleJump,
+  ]);
+  return {
+    currentIndex,
+    answers,
+    visited,
+    updateAnswer,
+    handleJump,
+    handleNext,
+    handlePrev,
+    setCurrentIndex,
+    setAnswers,
+    setVisited,
+  };
 };
 
-// --- UI Components ---
-
-const TestHeader = memo(({ timeLeft, totalTime, onPause, currentIndex, total }) => {
-  const progress = totalTime > 0 ? (timeLeft / totalTime) * 100 : 0;
-  const progressColor = progress > 50 ? "#4caf50" : progress > 20 ? "#ffc107" : "#f44336";
-  return (
-    <header className="test-header">
-      <h5 className="question-number">Question <b>{currentIndex + 1}</b> of {total}</h5>
-      <div className="header-controls">
-        <div className="timer">
-          <span style={{ fontWeight: 600, color: progressColor }}>{formatTime(timeLeft)}</span>
-          <div className="progress-bar-container">
-            <div className="progress-bar-fill" style={{ width: `${progress}%`, background: progressColor }} />
-          </div>
-        </div>
-        <button className="btn btn-outline-warning" onClick={onPause}>Pause</button>
-      </div>
-    </header>
-  );
-});
-
-const QuestionContent = memo(({ question, currentIndex, total, selectedAnswer, onOptionChange, onNext, onPrev, onSubmit, isSubmitting, questionAreaRef }) => {
-    useEffect(() => {
-        if (questionAreaRef.current) { questionAreaRef.current.scrollTop = 0; }
-    }, [currentIndex, questionAreaRef]);
-    if (!question) return <div className="question-area"><p>Loading question...</p></div>;
+// --- UI Components (No changes here) ---
+const TestHeader = memo(
+  ({ timeLeft, totalTime, onPause, currentIndex, total }) => {
+    const progress = totalTime > 0 ? (timeLeft / totalTime) * 100 : 0;
+    const progressColor =
+      progress > 50 ? "#4caf50" : progress > 20 ? "#ffc107" : "#f44336";
     return (
-        <main className="question-area" ref={questionAreaRef}>
-          <div className="question-container">
-            <div className="question-text">{question.questionText}</div>
-            <div className="options-grid">
-              {question.options.map((opt, idx) => (
-                <label key={idx} className={`option-item${selectedAnswer === opt ? " selected" : ""}`}>
-                  <input type="radio" name={`q${currentIndex}`} value={opt} checked={selectedAnswer === opt} onChange={onOptionChange}/>
-                  <span>{opt}</span>
-                </label>
-              ))}
+      <header className="test-header">
+        <h5 className="question-number">
+          Question <b>{currentIndex + 1}</b> of {total}
+        </h5>
+        <div className="header-controls">
+          <div className="timer">
+            <span style={{ fontWeight: 600, color: progressColor }}>
+              {formatTime(timeLeft)}
+            </span>
+            <div className="progress-bar-container">
+              <div
+                className="progress-bar-fill"
+                style={{ width: `${progress}%`, background: progressColor }}
+              />
             </div>
           </div>
-          <nav className="navigation-buttons">
-            <button className="btn btn-secondary" onClick={onPrev} disabled={currentIndex === 0 || isSubmitting}>Previous</button>
-            {currentIndex === total - 1 ? (
-              <button className="btn btn-success" onClick={() => onSubmit(false)} disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Submit Test"}
-              </button>
-            ) : (
-              <button className="btn btn-primary" onClick={onNext} disabled={isSubmitting}>Next</button>
-            )}
-          </nav>
-        </main>
+          <button className="btn btn-outline-warning" onClick={onPause}>
+            Pause
+          </button>
+        </div>
+      </header>
     );
-});
+  }
+);
 
-// NEW: Palette Legend Component
+const QuestionContent = memo(
+  ({
+    question,
+    currentIndex,
+    total,
+    selectedAnswer,
+    onOptionChange,
+    onNext,
+    onPrev,
+    onSubmit,
+    isSubmitting,
+    questionAreaRef,
+  }) => {
+    useEffect(() => {
+      if (questionAreaRef.current) {
+        questionAreaRef.current.scrollTop = 0;
+      }
+    }, [currentIndex, questionAreaRef]);
+    if (!question)
+      return (
+        <div className="question-area">
+          <p>Loading question...</p>
+        </div>
+      );
+    return (
+      <main className="question-area" ref={questionAreaRef}>
+        <div className="question-container">
+          <div className="question-text">{question.questionText}</div>
+          <div className="options-grid">
+            {question.options.map((opt, idx) => (
+              <label
+                key={idx}
+                className={`option-item${
+                  selectedAnswer === opt ? " selected" : ""
+                }`}
+              >
+                <input
+                  type="radio"
+                  name={`q${currentIndex}`}
+                  value={opt}
+                  checked={selectedAnswer === opt}
+                  onChange={onOptionChange}
+                />
+                <span>{opt}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+        <nav className="navigation-buttons">
+          <button
+            className="btn btn-secondary"
+            onClick={onPrev}
+            disabled={currentIndex === 0 || isSubmitting}
+          >
+            Previous
+          </button>
+          {currentIndex === total - 1 ? (
+            <button
+              className="btn btn-success"
+              onClick={() => onSubmit(false)}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Submitting..." : "Submit Test"}
+            </button>
+          ) : (
+            <button
+              className="btn btn-primary"
+              onClick={onNext}
+              disabled={isSubmitting}
+            >
+              Next
+            </button>
+          )}
+        </nav>
+      </main>
+    );
+  }
+);
+
 const PaletteLegend = () => (
   <div className="palette-legend">
     <div className="legend-item">
-      <div className="legend-color-box" style={{ background: '#28a745' }}></div>
+      <div
+        className="legend-color-box"
+        style={{ background: "#28a745" }}
+      ></div>
       <span>Answered</span>
     </div>
     <div className="legend-item">
-      <div className="legend-color-box" style={{ background: '#dc3545' }}></div>
+      <div
+        className="legend-color-box"
+        style={{ background: "#dc3545" }}
+      ></div>
       <span>Skipped</span>
     </div>
     <div className="legend-item">
-      <div className="legend-color-box" style={{ background: '#e0e0e0', border: '1px solid #bdbdbd' }}></div>
+      <div
+        className="legend-color-box"
+        style={{ background: "#e0e0e0", border: "1px solid #bdbdbd" }}
+      ></div>
       <span>Unvisited</span>
     </div>
   </div>
 );
 
-// MODIFIED: QuestionPalette to include legend and new styles
-const QuestionPalette = memo(({ totalQuestions, currentIndex, answers, visited, onJump }) => {
-  const getStatus = (i) => {
-    if (currentIndex === i) return "active";
-    if (answers[i]) return "answered";
-    if (visited.has(i)) return "skipped"; 
-    return "unvisited";
-  };
-  const answeredCount = Object.keys(answers).length;
-  const skippedCount = Array.from({ length: totalQuestions }, (_, i) => i).filter(i => visited.has(i) && !answers[i]).length;
+const QuestionPalette = memo(
+  ({ totalQuestions, currentIndex, answers, visited, onJump }) => {
+    const getStatus = (i) => {
+      if (currentIndex === i) return "active";
+      if (answers[i]) return "answered";
+      if (visited.has(i)) return "skipped";
+      return "unvisited";
+    };
+    const answeredCount = Object.keys(answers).length;
+    const skippedCount = Array.from(
+      { length: totalQuestions },
+      (_, i) => i
+    ).filter((i) => visited.has(i) && !answers[i]).length;
 
-  return (
-    <aside className="question-palette-area">
-      <h5>Question Palette</h5>
-      <div className="palette-info">
-        <p className="palette-summary">
-          <b>{answeredCount}</b> Answered | <b>{skippedCount}</b> Skipped | <b>{totalQuestions}</b> Total
-        </p>
-        <PaletteLegend />
-      </div>
-      <div className="question-grid">
-        {Array.from({ length: totalQuestions }, (_, i) => i).map((i) => (
-          <button
-            key={i}
-            className={`palette-btn ${getStatus(i)}`}
-            onClick={() => onJump(i)}
-            title={`Question ${i + 1}: ${getStatus(i).toUpperCase()}`}
-          >{i + 1}</button>
-        ))}
-      </div>
-    </aside>
-  );
-});
+    return (
+      <aside className="question-palette-area">
+        <h5>Question Palette</h5>
+        <div className="palette-info">
+          <p className="palette-summary">
+            <b>{answeredCount}</b> Answered | <b>{skippedCount}</b> Skipped |{" "}
+            <b>{totalQuestions}</b> Total
+          </p>
+          <PaletteLegend />
+        </div>
+        <div className="question-grid">
+          {Array.from({ length: totalQuestions }, (_, i) => i).map((i) => (
+            <button
+              key={i}
+              className={`palette-btn ${getStatus(i)}`}
+              onClick={() => onJump(i)}
+              title={`Question ${i + 1}: ${getStatus(i).toUpperCase()}`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      </aside>
+    );
+  }
+);
 
-// NEW: Confirmation Modal for Pausing
 const ConfirmPauseModal = memo(({ onConfirm, onCancel }) => (
   <div className="modal-overlay">
     <div className="modal-content">
@@ -546,100 +664,122 @@ const ConfirmPauseModal = memo(({ onConfirm, onCancel }) => (
   </div>
 ));
 
-// MODIFIED: Renamed PauseModal to ResumeModal
 const ResumeModal = memo(({ onResume, onSubmit }) => (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h3>Test Paused</h3>
-        <p>The test is paused. Resume to continue or submit your current progress.</p>
-        <div className="modal-actions">
-          <button className="btn btn-primary" onClick={onResume}>
-            Resume Test
-          </button>
-          <button className="btn btn-success" onClick={onSubmit}>
-            Submit Now
-          </button>
-        </div>
+  <div className="modal-overlay">
+    <div className="modal-content">
+      <h3>Test Paused</h3>
+      <p>
+        The test is paused. Resume to continue or submit your current progress.
+      </p>
+      <div className="modal-actions">
+        <button className="btn btn-primary" onClick={onResume}>
+          Resume Test
+        </button>
+        <button className="btn btn-success" onClick={onSubmit}>
+          Submit Now
+        </button>
       </div>
     </div>
+  </div>
 ));
 
-
-// --- Main Component ---
+// --- Main Component (No changes here) ---
 const Test = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const { exam, mockTest, id } = useParams();
-  
+
   const questionAreaRef = useRef(null);
-  const fullscreenRef = useRef(null); // NEW: Ref for fullscreen element
+  const fullscreenRef = useRef(null);
 
   const { tests, error } = useSelector((state) => state.tests);
 
   const [currentTest, setCurrentTest] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeoutNotification, setTimeoutNotification] = useState(false);
-  
-  // NEW: State for modals
+
   const [showConfirmPauseModal, setShowConfirmPauseModal] = useState(false);
   const [showResumeModal, setShowResumeModal] = useState(false);
-  
-  const isResume = location.state?.isResume;
-  const initialTimeDuration = 3600; 
 
-  // NEW: Fullscreen hook instance
+  const isResume = location.state?.isResume;
+  const initialTimeDuration = 3600;
+
   const { enterFullscreen, exitFullscreen } = useFullscreen(fullscreenRef);
 
   const timerControls = useRef({});
   const totalQuestions = currentTest?.questions?.length || 0;
-  const { 
-    currentIndex, answers, visited, 
-    updateAnswer, handleJump, handleNext, handlePrev,
-    setCurrentIndex, setAnswers, setVisited
+  const {
+    currentIndex,
+    answers,
+    visited,
+    updateAnswer,
+    handleJump,
+    handleNext,
+    handlePrev,
+    setCurrentIndex,
+    setAnswers,
+    setVisited,
   } = useTestAttempt(totalQuestions);
 
-  const handleSubmit = useCallback(async (auto = false) => {
-    if (!currentTest || isSubmitting) return;
-    setIsSubmitting(true);
-    timerControls.current.pause(); 
-    setShowResumeModal(false);
-    if (auto) {
-      setTimeoutNotification(true);
-      setTimeout(() => setTimeoutNotification(false), 3000); 
-    }
-    const payload = {
-      testId: currentTest._id,
-      answers: currentTest.questions.map((q, i) => ({
-        question: q.questionText,
-        selectedOption: answers[i] || "Not Attempted",
-        isCorrect: answers[i] === q.answer, 
-      })),
-      timeTaken: currentTest.timeDuration * 60 - timerControls.current.timeLeft,
-    };
-    try {
+  const handleSubmit = useCallback(
+    async (auto = false) => {
+      if (!currentTest || isSubmitting) return;
+      setIsSubmitting(true);
+      timerControls.current.pause();
+      setShowResumeModal(false);
+      if (auto) {
+        setTimeoutNotification(true);
+        setTimeout(() => setTimeoutNotification(false), 3000);
+      }
+      const payload = {
+        testId: currentTest._id,
+        answers: currentTest.questions.map((q, i) => ({
+          question: q.questionText,
+          selectedOption: answers[i] || "Not Attempted",
+          isCorrect: answers[i] === q.answer,
+        })),
+        timeTaken:
+          currentTest.timeDuration * 60 - timerControls.current.timeLeft,
+      };
+      try {
         const result = await dispatch(submitTest(payload));
-        if (result.error) { throw new Error(result.error.message || "Submission failed"); }
-        exitFullscreen(); // Exit fullscreen on successful submission
+        if (result.error) {
+          throw new Error(result.error.message || "Submission failed");
+        }
+        exitFullscreen();
         navigate(`/${exam}/${mockTest}/test/result/${currentTest._id}`);
-    } catch (e) {
+      } catch (e) {
         setIsSubmitting(false);
         console.error("Submission failed:", e);
         alert(`Failed to submit test. Please try again. Error: ${e.message}`);
         if (!auto) timerControls.current.resume();
-    }
-  }, [answers, currentTest, exam, mockTest, dispatch, navigate, isSubmitting, exitFullscreen]);
+      }
+    },
+    [
+      answers,
+      currentTest,
+      exam,
+      mockTest,
+      dispatch,
+      navigate,
+      isSubmitting,
+      exitFullscreen,
+    ]
+  );
 
   const handleTimeUp = useCallback(() => handleSubmit(true), [handleSubmit]);
-  const { timeLeft, start, pause, resume, isPaused } = useTimer(initialTimeDuration, handleTimeUp);
+  const { timeLeft, start, pause, resume, isPaused } = useTimer(
+    initialTimeDuration,
+    handleTimeUp
+  );
 
   useEffect(() => {
     timerControls.current = { pause, resume, timeLeft };
   }, [pause, resume, timeLeft]);
 
-  // --- Fetch Test Data & Fullscreen Entry ---
-  useEffect(() => { 
-    if (exam && !tests.length) dispatch(getTests(exam)); 
+  useEffect(() => {
+    if (exam && !tests.length) dispatch(getTests(exam));
   }, [exam, dispatch, tests.length]);
 
   useEffect(() => {
@@ -647,88 +787,113 @@ const Test = () => {
     const test = tests.find((t) => t._id === id);
     if (!test) return;
     setCurrentTest(test);
-    enterFullscreen(); // NEW: Enter fullscreen when test is ready
+    enterFullscreen();
     const totalTime = test.timeDuration * 60;
-    
+
     if (isResume) {
-      dispatch(resumeTest(test._id)).then((res) => {
-        const attempt = res?.payload?.attempt; 
-        if (attempt) {
-          const index = attempt.currentQuestionIndex || 0;
-          setAnswers(attempt.inProgressAnswers || {});
-          setCurrentIndex(index);
-          const attemptedIndices = Object.keys(attempt.inProgressAnswers).map(Number);
-          setVisited(new Set([...attemptedIndices, index]));
-          start(attempt.timeLeft || totalTime); 
-        } else {
-          start(totalTime);
-        }
-      }).catch(err => {
+      dispatch(resumeTest(test._id))
+        .then((res) => {
+          const attempt = res?.payload?.attempt;
+          if (attempt) {
+            const index = attempt.currentQuestionIndex || 0;
+            setAnswers(attempt.inProgressAnswers || {});
+            setCurrentIndex(index);
+            const attemptedIndices = Object.keys(
+              attempt.inProgressAnswers
+            ).map(Number);
+            setVisited(new Set([...attemptedIndices, index]));
+            start(attempt.timeLeft || totalTime);
+          } else {
+            start(totalTime);
+          }
+        })
+        .catch((err) => {
           console.error("Resume failed:", err);
           start(totalTime);
         });
     } else {
-        start(totalTime);
+      start(totalTime);
     }
-  }, [tests, id, isResume, dispatch, start, setCurrentIndex, setAnswers, setVisited, enterFullscreen]);
+  }, [
+    tests,
+    id,
+    isResume,
+    dispatch,
+    start,
+    setCurrentIndex,
+    setAnswers,
+    setVisited,
+    enterFullscreen,
+  ]);
 
-  // --- Pause/Resume Handlers ---
-
-  // MODIFIED: This is now the final step after confirmation
   const handlePause = () => {
     if (!currentTest || isSubmitting) return;
-    setShowConfirmPauseModal(false); // Close confirmation modal
+    setShowConfirmPauseModal(false);
     pause();
-    exitFullscreen(); // Exit fullscreen
-    setShowResumeModal(true); // Show the main resume modal
-    dispatch(pauseTest({
+    exitFullscreen();
+    setShowResumeModal(true);
+    dispatch(
+      pauseTest({
         testId: currentTest._id,
         timeLeft: timeLeft,
         inProgressAnswers: answers,
         currentQuestionIndex: currentIndex,
-    }));
+      })
+    );
   };
 
   const handleResume = () => {
     if (isSubmitting) return;
-    enterFullscreen(); // Re-enter fullscreen
+    enterFullscreen();
     resume();
     setShowResumeModal(false);
   };
-  
-  // NEW: This is the first step when the header button is clicked
+
   const requestPause = () => {
     if (isSubmitting) return;
     setShowConfirmPauseModal(true);
   };
 
-  // --- Render Logic ---
-  if (error) return <p className="error-message">❌ Error loading test: {error}</p>;
-  if (!currentTest || !currentTest.questions) return <p className="loading-message">Loading test details...</p>;
-  if (currentTest.questions.length === 0) return <p className="empty-message">No questions found for this test.</p>;
+  if (error)
+    return <p className="error-message">❌ Error loading test: {error}</p>;
+  if (!currentTest || !currentTest.questions)
+    return <p className="loading-message">Loading test details...</p>;
+  if (currentTest.questions.length === 0)
+    return <p className="empty-message">No questions found for this test.</p>;
 
   const currentQuestion = currentTest.questions[currentIndex];
-  
+
   return (
     <Fragment>
       <MetaData title="Test in Progress" />
       <TestStyles />
-      {timeoutNotification && (<div className="timeout-notification">Time's up! Submitting automatically...</div>)}
-      
-      {/* NEW: Confirmation modal */}
-      {showConfirmPauseModal && <ConfirmPauseModal onConfirm={handlePause} onCancel={() => setShowConfirmPauseModal(false)} />}
-      
-      {/* MODIFIED: Resume modal is shown when test is actually paused */}
-      {isPaused && showResumeModal && <ResumeModal onResume={handleResume} onSubmit={() => handleSubmit(false)} />}
+      {timeoutNotification && (
+        <div className="timeout-notification">
+          Time's up! Submitting automatically...
+        </div>
+      )}
 
-      {/* MODIFIED: Added ref for fullscreen */}
+      {showConfirmPauseModal && (
+        <ConfirmPauseModal
+          onConfirm={handlePause}
+          onCancel={() => setShowConfirmPauseModal(false)}
+        />
+      )}
+
+      {isPaused && showResumeModal && (
+        <ResumeModal
+          onResume={handleResume}
+          onSubmit={() => handleSubmit(false)}
+        />
+      )}
+
       <div className="test-container-fullscreen" ref={fullscreenRef}>
         <TestHeader
           timeLeft={timeLeft}
           totalTime={currentTest.timeDuration * 60}
           currentIndex={currentIndex}
           total={totalQuestions}
-          onPause={requestPause} // MODIFIED: Call requestPause instead of handlePause
+          onPause={requestPause}
         />
         <div className="test-layout">
           <QuestionContent
