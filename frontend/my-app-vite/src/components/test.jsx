@@ -1395,6 +1395,7 @@
 // };
 
 // export default Test;
+
 import React, {
   useEffect,
   useState,
@@ -1499,21 +1500,23 @@ const TestStyles = () => (
       line-height: 1.6;
       margin-bottom: 32px;
       color: var(--text-color);
+      word-wrap: break-word; /* Ensure wrapping for long questions */
+      overflow-wrap: break-word;
     }
     .options-grid {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr; /* Default single column for mobile first */
       gap: 15px;
     }
     @media (min-width: 1024px) {
         .options-grid {
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
         }
     }
     .option-item {
       display: flex;
-      align-items: center;
+      align-items: flex-start; /* Align with top for multi-line text */
       padding: 15px;
       border: 1px solid #ccc;
       border-radius: 8px;
@@ -1534,9 +1537,15 @@ const TestStyles = () => (
     }
     .option-item input[type="radio"] {
       margin-right: 12px;
+      margin-top: 2px; /* Adjust vertical position */
+      flex-shrink: 0;
       width: 18px;
       height: 18px;
       accent-color: var(--primary-color);
+    }
+    .option-item span {
+      word-wrap: break-word; /* Ensure wrapping for long options */
+      overflow-wrap: break-word;
     }
     .navigation-buttons {
       display: flex;
@@ -1545,6 +1554,7 @@ const TestStyles = () => (
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      flex-shrink: 0;
     }
     .question-palette-area {
       width: 320px;
@@ -1553,9 +1563,20 @@ const TestStyles = () => (
       border-left: 1px solid var(--medium-gray);
       padding: 24px;
       overflow-y: auto;
+      order: 1; /* Default desktop order */
+    }
+    .question-palette-area h5 {
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+    .question-palette-area .question-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
     }
     .palette-btn {
       aspect-ratio: 1 / 1;
+      height: 50px;
       border-radius: 50%;
       border: 2px solid transparent;
       background: var(--medium-gray);
@@ -1563,6 +1584,9 @@ const TestStyles = () => (
       transition: all 0.2s;
       cursor: pointer;
       font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .palette-btn:hover {
       transform: translateY(-2px);
@@ -1573,8 +1597,9 @@ const TestStyles = () => (
     .palette-btn.answered { background: var(--success-color); color: white; }
     .palette-btn.active {
         border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px var(--primary-light);
         font-weight: bold;
-        transform: scale(1.1);
+        transform: scale(1.05);
     }
     .btn {
       padding: 10px 20px;
@@ -1583,10 +1608,11 @@ const TestStyles = () => (
       cursor: pointer;
       font-weight: 500;
       transition: all 0.2s;
+      min-width: 100px;
     }
     .btn:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
     .btn:disabled {
       opacity: 0.5;
@@ -1595,8 +1621,120 @@ const TestStyles = () => (
     .btn-primary { background-color: var(--primary-color); color: white; }
     .btn-secondary { background-color: #6c757d; color: white; }
     .btn-success { background-color: var(--success-color); color: white; }
-    .btn-outline-warning { border-color: var(--warning-color); color: var(--warning-color); }
+    .btn-outline-warning { border-color: var(--warning-color); color: var(--warning-color); background: #fff;}
     .btn-outline-warning:hover { background-color: var(--warning-color); color: white; }
+    
+    /* MODAL STYLES */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 200;
+    }
+    .modal-content {
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        max-width: 90%;
+        width: 450px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        text-align: center;
+    }
+    .modal-content h3 {
+        margin-top: 0;
+        color: var(--primary-color);
+    }
+    .modal-content p {
+        margin-bottom: 30px;
+        color: var(--text-color);
+    }
+    .modal-actions {
+        display: flex;
+        justify-content: space-around;
+        gap: 15px;
+    }
+
+    /* TIMEOUT NOTIFICATION */
+    .timeout-notification {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--danger-color);
+      color: white;
+      padding: 20px 40px;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      z-index: 300;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    /* --- MOBILE STYLES (Max Width 1023px) --- */
+    @media (max-width: 1023px) {
+      .test-header {
+          padding: 8px 16px; 
+      }
+      .test-header .header-controls {
+          gap: 10px;
+      }
+      .test-layout {
+          flex-direction: column; /* Stack main content and palette vertically */
+          overflow-y: auto;
+      }
+      .question-area {
+          padding: 16px 12px; /* Tighter padding for mobile */
+          overflow-y: visible;
+          order: 1;
+      }
+      .question-container {
+          padding: 18px;
+          margin-bottom: 16px;
+      }
+      .question-text {
+          font-size: 1.05rem; /* Smaller font for question text on mobile */
+          margin-bottom: 20px;
+      }
+      /* Options grid is already 1fr on mobile, based on default CSS */
+      .option-item {
+          padding: 12px;
+      }
+      .option-item input[type="radio"] {
+        margin-right: 10px;
+      }
+
+      .question-palette-area {
+          width: 100%; /* Full width for palette */
+          border-left: none;
+          border-top: 1px solid var(--medium-gray);
+          padding: 16px 12px;
+          flex-shrink: 0;
+          order: 2; /* Put the palette below the question area */
+      }
+      .question-palette-area .question-grid {
+          grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); /* Dense grid for buttons */
+          gap: 8px;
+          margin-top: 10px;
+      }
+      .palette-btn {
+          height: 45px;
+          border-radius: 6px; /* Rounded square for better touch target */
+      }
+      .navigation-buttons {
+          padding: 12px 16px;
+          border-radius: 0;
+      }
+      .btn {
+          min-width: 80px;
+          padding: 8px 15px;
+          font-size: 0.9rem;
+      }
+    }
   `}</style>
 );
 
@@ -1629,13 +1767,14 @@ const useTimer = (onTimeout) => {
 
   return {
     timeLeft,
+    isPaused,
     start: (t) => { setTimeLeft(t); setIsPaused(false); },
     pause: () => setIsPaused(true),
     resume: () => setIsPaused(false),
   };
 };
 
-// UI
+// UI Components
 const TestHeader = memo(({ timeLeft, totalTime, onPause, currentIndex, total }) => {
   const progress = totalTime > 0 ? (timeLeft / totalTime) * 100 : 0;
   const progressColor = progress > 50 ? "#4caf50" : progress > 20 ? "#ffc107" : "#f44336";
@@ -1691,7 +1830,7 @@ const QuestionPalette = memo(({ questions, currentIndex, answers, skipped, visit
   const getStatus = (i) => {
     if (currentIndex === i) return "active";
     if (answers[i]) return "answered";
-    if (skipped.has(i)) return "skipped";
+    if (visited.has(i) && !answers[i]) return "skipped"; // If visited but not answered (skipped)
     if (visited.has(i)) return "visited";
     return "";
   };
@@ -1711,6 +1850,24 @@ const QuestionPalette = memo(({ questions, currentIndex, answers, skipped, visit
   );
 });
 
+const PauseModal = memo(({ onResume, onSubmit }) => (
+    <div className="modal-overlay">
+        <div className="modal-content">
+            <h3>Test Paused</h3>
+            <p>Your time has been stopped. You can resume the test, or submit your current progress.</p>
+            <div className="modal-actions">
+                <button className="btn btn-primary" onClick={onResume}>
+                    Resume Test
+                </button>
+                <button className="btn btn-success" onClick={onSubmit}>
+                    Submit Now
+                </button>
+            </div>
+        </div>
+    </div>
+));
+
+
 // Main Component
 const Test = () => {
   const dispatch = useDispatch();
@@ -1722,12 +1879,14 @@ const Test = () => {
   const [currentTest, setCurrentTest] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [skipped, setSkipped] = useState(new Set());
   const [visited, setVisited] = useState(new Set([0]));
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPauseModal, setShowPauseModal] = useState(false);
+  const [timeoutNotification, setTimeoutNotification] = useState(false); // For alert replacement
+
   const isResume = location.state?.isResume;
 
-  const { timeLeft, start, pause, resume } = useTimer(() => handleSubmit(true));
+  const { timeLeft, start, pause, resume, isPaused } = useTimer(() => handleSubmit(true));
 
   // Fetch test
   useEffect(() => { if (exam) dispatch(getTests(exam)); }, [exam, dispatch]);
@@ -1737,62 +1896,128 @@ const Test = () => {
     if (!test) return;
     setCurrentTest(test);
     const totalTime = test.timeDuration * 60;
+    
+    // Resume logic: Try to fetch in-progress attempt data
     if (isResume) {
       dispatch(resumeTest(test._id)).then((res) => {
         if (res?.attempt) {
           start(res.attempt.timeLeft || totalTime);
           setAnswers(res.attempt.inProgressAnswers || {});
           setCurrentIndex(res.attempt.currentQuestionIndex || 0);
-        } else start(totalTime);
+          // Rebuild visited set based on attempted questions
+          const attemptedIndices = Object.keys(res.attempt.inProgressAnswers).map(Number);
+          setVisited(new Set([...attemptedIndices, res.attempt.currentQuestionIndex || 0]));
+        } else {
+            // If resume was requested but no saved state, start fresh
+            start(totalTime);
+        }
       });
-    } else start(totalTime);
+    } else {
+        // Start fresh
+        start(totalTime);
+    }
   }, [tests, id, isResume, dispatch, start]);
 
   const handleSubmit = useCallback(async (auto = false) => {
     if (!currentTest || isSubmitting) return;
     setIsSubmitting(true);
-    if (auto) alert("Time's up! Submitting automatically...");
+
+    if (auto) {
+      setTimeoutNotification(true);
+      setTimeout(() => setTimeoutNotification(false), 3000); // Hide notification after 3s
+    }
+
     const payload = {
       testId: currentTest._id,
       answers: currentTest.questions.map((q, i) => ({
         question: q.questionText,
         selectedOption: answers[i] || "Not Attempted",
-        isCorrect: answers[i] === q.answer,
+        // Note: isCorrect should ideally be calculated on the backend to prevent cheating.
+        // Keeping client-side check for now based on original code structure:
+        isCorrect: answers[i] === q.answer, 
       })),
       timeTaken: currentTest.timeDuration * 60 - timeLeft,
     };
+    
+    // Pause the timer permanently before submission
+    pause(); 
+    setShowPauseModal(false);
+
     await dispatch(submitTest(payload));
     navigate(`/${exam}/${mockTest}/test/result/${currentTest._id}`);
-  }, [answers, currentTest, timeLeft, exam, mockTest, dispatch, navigate, isSubmitting]);
+  }, [answers, currentTest, timeLeft, exam, mockTest, dispatch, navigate, isSubmitting, pause]);
+
+  const handlePause = () => {
+    if (!currentTest || isSubmitting) return;
+    pause();
+    setShowPauseModal(true);
+    // Dispatch pause action to save current state
+    dispatch(pauseTest({
+        testId: currentTest._id,
+        timeLeft: timeLeft,
+        inProgressAnswers: answers,
+        currentQuestionIndex: currentIndex,
+    }));
+  };
+
+  const handleResume = () => {
+    if (isSubmitting) return;
+    resume();
+    setShowPauseModal(false);
+  };
+
 
   const handleNext = () => {
     if (currentIndex < currentTest.questions.length - 1) {
       setVisited((v) => new Set(v).add(currentIndex + 1));
-      if (!answers[currentIndex]) setSkipped((s) => new Set(s).add(currentIndex));
       setCurrentIndex(currentIndex + 1);
     }
   };
 
-  if (error) return <p>❌ {error}</p>;
-  if (!currentTest) return <p>Loading...</p>;
+  const handleJump = (index) => {
+    setVisited((v) => new Set(v).add(index));
+    setCurrentIndex(index);
+  }
+
+  if (error) return <p>❌ Error loading test: {error}</p>;
+  if (!currentTest) return <p>Loading test details...</p>;
+  if (currentTest.questions.length === 0) return <p>No questions found for this test.</p>;
+
+  // Filter out skipped items based on if they were visited but not answered
+  const totalQuestions = currentTest.questions.length;
+  const skippedQuestions = new Set(
+      Array.from({ length: totalQuestions }, (_, i) => i)
+          .filter(i => visited.has(i) && !answers[i])
+  );
 
   return (
     <Fragment>
       <MetaData title="Test in Progress" />
       <TestStyles />
+      
+      {timeoutNotification && (
+          <div className="timeout-notification">
+              Time's up! Submitting automatically...
+          </div>
+      )}
+
+      {isPaused && showPauseModal && (
+          <PauseModal onResume={handleResume} onSubmit={() => handleSubmit(false)} />
+      )}
+
       <div className="test-container-fullscreen">
         <TestHeader
           timeLeft={timeLeft}
           totalTime={currentTest.timeDuration * 60}
           currentIndex={currentIndex}
-          total={currentTest.questions.length}
-          onPause={() => pause()}
+          total={totalQuestions}
+          onPause={handlePause}
         />
         <div className="test-layout">
           <QuestionContent
             question={currentTest.questions[currentIndex]}
             currentIndex={currentIndex}
-            total={currentTest.questions.length}
+            total={totalQuestions}
             selectedAnswer={answers[currentIndex]}
             onOptionChange={(e) => setAnswers((a) => ({ ...a, [currentIndex]: e.target.value }))}
             onNext={handleNext}
@@ -1804,9 +2029,9 @@ const Test = () => {
             questions={currentTest.questions}
             currentIndex={currentIndex}
             answers={answers}
-            skipped={skipped}
+            skipped={skippedQuestions}
             visited={visited}
-            onJump={setCurrentIndex}
+            onJump={handleJump}
           />
         </div>
       </div>
