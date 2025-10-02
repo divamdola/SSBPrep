@@ -1396,267 +1396,643 @@
 
 // export default Test;
 import React, {
-  useEffect,
-  useState,
-  Fragment,
-  useCallback,
-  useRef,
-  memo
+  useEffect,
+  useState,
+  Fragment,
+  useCallback,
+  useRef,
+  memo
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 // Assuming these actions are implemented and available
-import { getTests, submitTest, pauseTest, resumeTest } from "../actions/productActions"; 
+import { getTests, submitTest, pauseTest, resumeTest } from "../actions/productActions"; 
 import MetaData from "./layouts/MetaData";
 
-/* --- Styles (unchanged) --- */
+// --- Custom Styles Component ---
 const TestStyles = () => (
-  <style>{`
-    /* (same styling code you had, unchanged) */
-  `}</style>
+  <style>{`
+    :root {
+      --primary-color: #007bff;
+      --primary-light: #e3f2fd;
+      --success-color: #28a745;
+      --warning-color: #ffc107;
+      --danger-color: #dc3545;
+      --light-gray: #f4f7f9;
+      --medium-gray: #e0e0e0;
+      --dark-gray: #424242;
+      --text-color: #212121;
+      --border-radius: 8px;
+    }
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+    .test-container-fullscreen {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--light-gray);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    .test-layout {
+      display: flex;
+      flex-grow: 1;
+      overflow: hidden; /* Important for full height scrolling */
+      width: 100%;
+      max-width: 1600px; /* Slightly wider max-width for desktop */
+      margin: 0 auto;
+    }
+    .test-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--medium-gray);
+      flex-shrink: 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .test-header .question-number {
+      color: var(--text-color);
+      margin: 0;
+      font-size: 1.1rem;
+    }
+    .test-header .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .timer {
+      text-align: center;
+    }
+    .progress-bar-container {
+      width: 120px;
+      height: 6px;
+      background: var(--medium-gray);
+      border-radius: 3px;
+      margin-top: 4px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease-in-out, background 0.5s;
+    }
+    .question-area {
+      flex-grow: 1;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto; /* Scrollable area for question content */
+      width: calc(100% - 320px); /* Desktop width */
+    }
+    .question-container {
+      background: #fff;
+      padding: 32px;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-bottom: 24px;
+    }
+    .question-text {
+      font-size: 1.35rem;
+      line-height: 1.6;
+      margin-bottom: 32px;
+      color: var(--text-color);
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+    @media (min-width: 1024px) {
+        .options-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+        }
+    }
+    .option-item {
+      display: flex;
+      align-items: flex-start;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .option-item:hover {
+      background: #f0f8ff;
+      border-color: var(--primary-color);
+      transform: translateY(-2px);
+    }
+    .option-item.selected {
+      background: var(--primary-light);
+      border-color: var(--primary-color);
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+    .option-item input[type="radio"] {
+      margin-right: 12px;
+      margin-top: 2px;
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary-color);
+    }
+    .option-item span {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      line-height: 1.4;
+    }
+    .navigation-buttons {
+      display: flex;
+      justify-content: space-between;
+      padding: 24px;
+      background: #fff;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      flex-shrink: 0;
+      margin-top: auto; /* Push navigation to the bottom of question-area */
+    }
+    .question-palette-area {
+      width: 320px;
+      flex-shrink: 0;
+      background: #ffffff;
+      border-left: 1px solid var(--medium-gray);
+      padding: 24px;
+      overflow-y: auto;
+      order: 1;
+    }
+    .palette-summary {
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+        color: var(--dark-gray);
+    }
+    .palette-summary .answered-count {
+        color: var(--success-color); 
+        font-weight: bold;
+    }
+    .palette-summary .skipped-count {
+        color: var(--danger-color); 
+        font-weight: bold;
+    }
+    .question-palette-area h5 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-size: 1.2rem;
+        color: var(--text-color);
+    }
+    .question-palette-area .question-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+    }
+    .palette-btn {
+      aspect-ratio: 1 / 1;
+      height: 50px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      background: var(--medium-gray);
+      color: var(--dark-gray);
+      transition: all 0.2s;
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+    .palette-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .palette-btn.unvisited { background: var(--medium-gray); color: var(--dark-gray); }
+    .palette-btn.skipped { background: var(--danger-color); color: white; }
+    .palette-btn.answered { background: var(--success-color); color: white; }
+    .palette-btn.active {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px var(--primary-light);
+        font-weight: bold;
+        transform: scale(1.05);
+        color: var(--primary-color);
+        background: var(--primary-light);
+    }
+    .btn {
+      padding: 10px 20px;
+      border-radius: var(--border-radius);
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+      min-width: 120px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-primary { background-color: var(--primary-color); color: white; }
+    .btn-secondary { background-color: #6c757d; color: white; }
+    .btn-success { background-color: var(--success-color); color: white; }
+    .btn-outline-warning { border-color: var(--warning-color); color: var(--warning-color); background: #fff;}
+    .btn-outline-warning:hover:not(:disabled) { background-color: var(--warning-color); color: white; }
+    
+    /* MODAL STYLES (Kept as is, they are fine) */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 200;
+    }
+    .modal-content {
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        max-width: 90%;
+        width: 450px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        text-align: center;
+    }
+    .modal-content h3 {
+        margin-top: 0;
+        color: var(--primary-color);
+    }
+    .modal-content p {
+        margin-bottom: 30px;
+        color: var(--text-color);
+    }
+    .modal-actions {
+        display: flex;
+        justify-content: space-around;
+        gap: 15px;
+    }
+
+    /* TIMEOUT NOTIFICATION (Kept as is) */
+    .timeout-notification {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--danger-color);
+      color: white;
+      padding: 20px 40px;
+      border-radius: var(--border-radius);
+      font-size: 1.2rem;
+      z-index: 300;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    /* --- MOBILE STYLES (Max Width 1023px) --- */
+    @media (max-width: 1023px) {
+      .test-header {
+          padding: 8px 16px; 
+      }
+      .test-header .header-controls {
+          gap: 10px;
+      }
+      .test-layout {
+          flex-direction: column;
+          overflow-y: auto;
+      }
+      .question-area {
+          padding: 16px 12px;
+          overflow-y: visible;
+          width: 100%;
+          order: 1;
+      }
+      .question-container {
+          padding: 18px;
+          margin-bottom: 16px;
+      }
+      .question-text {
+          font-size: 1.05rem;
+          margin-bottom: 20px;
+      }
+      .option-item {
+          padding: 12px;
+      }
+      .option-item input[type="radio"] {
+        margin-right: 10px;
+      }
+
+      .question-palette-area {
+          width: 100%;
+          border-left: none;
+          border-top: 1px solid var(--medium-gray);
+          padding: 16px 12px;
+          flex-shrink: 0;
+          order: 2;
+      }
+      .question-palette-area .question-grid {
+          grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+          gap: 8px;
+          margin-top: 10px;
+      }
+      .palette-btn {
+          height: 45px;
+          border-radius: 6px;
+      }
+      .navigation-buttons {
+          padding: 12px 16px;
+          border-radius: 0;
+          margin-top: 16px;
+      }
+      .btn {
+          min-width: 80px;
+          padding: 8px 15px;
+          font-size: 0.9rem;
+      }
+    }
+  `}</style>
 );
 
 // Helpers
 const formatTime = (seconds) => {
-  if (isNaN(seconds) || seconds < 0) return "00:00:00";
-  const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
-  const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
-  const s = String(Math.floor(seconds % 60)).padStart(2, "0");
-  return `${h}:${m}:${s}`;
+  if (isNaN(seconds) || seconds < 0) return "00:00:00";
+  const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
+  const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
+  const s = String(Math.floor(seconds % 60)).padStart(2, "0");
+  return `${h}:${m}:${s}`;
 };
 
 // --- Custom Hooks ---
+
+// Timer Hook
 const useTimer = (initialTime, onTimeout) => {
-  const [timeLeft, setTimeLeft] = useState(initialTime);
-  const [isPaused, setIsPaused] = useState(true);
-  const timeoutCallback = useRef(onTimeout);
+  const [timeLeft, setTimeLeft] = useState(initialTime);
+  const [isPaused, setIsPaused] = useState(true);
+  const timeoutCallback = useRef(onTimeout);
 
-  useEffect(() => { timeoutCallback.current = onTimeout; }, [onTimeout]);
-  useEffect(() => { setTimeLeft(initialTime); }, [initialTime]); 
+  useEffect(() => { timeoutCallback.current = onTimeout; }, [onTimeout]);
+  
+  // Set initial time (with dependency array containing only initialTime)
+  // NOTE: The state setter outside of useEffect in the main component handles the actual time set.
+  // This internal useEffect only ensures the starting value is correct if the component mounts with a known time.
+  // The primary setting is still done via 'start' in the main component's useEffect.
+  useEffect(() => { setTimeLeft(initialTime); }, [initialTime]); 
 
-  useEffect(() => {
-    if (isPaused || timeLeft <= 0) return;
-    const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
-    return () => clearInterval(timer);
-  }, [timeLeft, isPaused]);
+  useEffect(() => {
+    if (isPaused || timeLeft <= 0) return;
+    const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft, isPaused]);
 
-  useEffect(() => {
-    if (timeLeft === 0 && !isPaused) timeoutCallback.current?.();
-  }, [timeLeft, isPaused]);
+  useEffect(() => {
+    if (timeLeft === 0 && !isPaused) timeoutCallback.current?.();
+  }, [timeLeft, isPaused]);
 
-  const start = useCallback((t) => { setTimeLeft(t); setIsPaused(false); }, []);
-  const pause = useCallback(() => setIsPaused(true), []);
-  const resume = useCallback(() => setIsPaused(false), []);
+  const start = useCallback((t) => { setTimeLeft(t); setIsPaused(false); }, []);
+  const pause = useCallback(() => setIsPaused(true), []);
+  const resume = useCallback(() => setIsPaused(false), []);
 
-  return {
-    timeLeft,
-    isPaused,
-    start,
-    pause,
-    resume,
-    setTimeLeft,
-  };
+  return {
+    timeLeft,
+    isPaused,
+    start,
+    pause,
+    resume,
+    setTimeLeft,
+  };
 };
 
+// Test Attempt State Hook
 const useTestAttempt = (totalQuestions) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState({});
-  const [visited, setVisited] = useState(new Set([0])); 
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [answers, setAnswers] = useState({});
+    // visited state: key is index, value is true/false (or timestamp)
+    const [visited, setVisited] = useState(new Set([0])); 
 
-  const updateAnswer = useCallback((index, answer) => {
-    setAnswers(a => ({ ...a, [index]: answer }));
-  }, []);
+    const updateAnswer = useCallback((index, answer) => {
+        setAnswers(a => ({ ...a, [index]: answer }));
+    }, []);
 
-  const handleJump = useCallback((index) => {
-    if (index >= 0 && index < totalQuestions) {
-      setVisited((v) => new Set(v).add(index));
-      setCurrentIndex(index);
-    }
-  }, [totalQuestions]);
+    const handleJump = useCallback((index) => {
+        if (index >= 0 && index < totalQuestions) {
+            setVisited((v) => new Set(v).add(index));
+            setCurrentIndex(index);
+        }
+    }, [totalQuestions]);
 
-  const handleNext = useCallback(() => { handleJump(currentIndex + 1); }, [currentIndex, handleJump]);
-  const handlePrev = useCallback(() => { handleJump(currentIndex - 1); }, [currentIndex, handleJump]);
+    const handleNext = useCallback(() => {
+        handleJump(currentIndex + 1);
+    }, [currentIndex, handleJump]);
 
-  const resetState = useCallback(() => {
-    setCurrentIndex(0);
-    setAnswers({});
-    setVisited(new Set([0]));
-  }, []);
+    const handlePrev = useCallback(() => {
+        handleJump(currentIndex - 1);
+    }, [currentIndex, handleJump]);
 
-  return {
-    currentIndex,
-    answers,
-    visited,
-    updateAnswer,
-    handleJump,
-    handleNext,
-    handlePrev,
-    resetState,
-    setCurrentIndex,
-    setAnswers,
-    setVisited,
-  };
+    // Kept for completeness, though not strictly needed here
+    const resetState = useCallback(() => {
+        setCurrentIndex(0);
+        setAnswers({});
+        setVisited(new Set([0]));
+    }, []);
+
+    return {
+        currentIndex,
+        answers,
+        visited,
+        updateAnswer,
+        handleJump,
+        handleNext,
+        handlePrev,
+        resetState,
+        setCurrentIndex,
+        setAnswers,
+        setVisited,
+    };
 };
 
-// --- UI Components (unchanged, only shortened comments) ---
+// --- UI Components ---
+
 const TestHeader = memo(({ timeLeft, totalTime, onPause, currentIndex, total }) => {
-  const progress = totalTime > 0 ? (timeLeft / totalTime) * 100 : 0;
-  const progressColor = progress > 50 ? "#4caf50" : progress > 20 ? "#ffc107" : "#f44336";
-  
-  return (
-    <header className="test-header">
-      <h5 className="question-number">Question <span style={{fontWeight: 'bold'}}>{currentIndex + 1}</span> of {total}</h5>
-      <div className="header-controls">
-        <div className="timer">
-          <span style={{ fontWeight: 600, color: progressColor }}>
-            {formatTime(timeLeft)}
-          </span>
-          <div className="progress-bar-container">
-            <div className="progress-bar-fill" style={{ width: `${progress}%`, background: progressColor }} />
-          </div>
-        </div>
-        <button className="btn btn-outline-warning" onClick={onPause}>Pause</button>
-      </div>
-    </header>
-  );
+  const progress = totalTime > 0 ? (timeLeft / totalTime) * 100 : 0;
+  const progressColor = progress > 50 ? "#4caf50" : progress > 20 ? "#ffc107" : "#f44336";
+  
+  return (
+    <header className="test-header">
+      <h5 className="question-number">Question <span style={{fontWeight: 'bold'}}>{currentIndex + 1}</span> of {total}</h5>
+      <div className="header-controls">
+        <div className="timer">
+          <span style={{ fontWeight: 600, color: progressColor }}>
+            {formatTime(timeLeft)}
+          </span>
+          <div className="progress-bar-container">
+            <div className="progress-bar-fill" style={{ width: `${progress}%`, background: progressColor }} />
+        </div>
+        </div>
+        <button className="btn btn-outline-warning" onClick={onPause}>Pause</button>
+      </div>
+    </header>
+  );
 });
 
 const QuestionContent = memo(({ question, currentIndex, total, selectedAnswer, onOptionChange, onNext, onPrev, onSubmit, isSubmitting, questionAreaRef }) => {
-  useEffect(() => {
-    if (questionAreaRef.current) {
-      questionAreaRef.current.scrollTop = 0;
-    }
-  }, [currentIndex, questionAreaRef]);
+    
+    useEffect(() => {
+        // Scroll to the top of the question area when question changes
+        if (questionAreaRef.current) {
+            questionAreaRef.current.scrollTop = 0;
+        }
+    }, [currentIndex, questionAreaRef]);
 
-  if (!question) return <div className="question-area"><p>Loading question...</p></div>;
+    if (!question) return <div className="question-area"><p>Loading question...</p></div>;
 
-  return (
-    <main className="question-area" ref={questionAreaRef}>
-      <div className="question-container">
-        <div className="question-text">{question.questionText}</div>
-        <div className="options-grid">
-          {question.options.map((opt, idx) => (
-            <label 
-              key={idx} 
-              className={`option-item${selectedAnswer === opt ? " selected" : ""}`}
-            >
-              <input
-                type="radio"
-                name={`q${currentIndex}`}
-                value={opt}
-                checked={selectedAnswer === opt}
-                onChange={onOptionChange}
-              />
-              <span>{opt}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+    return (
+        <main className="question-area" ref={questionAreaRef}>
+          <div className="question-container">
+            <div className="question-text">{question.questionText}</div>
+            <div className="options-grid">
+              {question.options.map((opt, idx) => (
+                <label 
+                  key={idx} 
+                  className={`option-item${selectedAnswer === opt ? " selected" : ""}`}
+                >
+                  <input
+                    type="radio"
+                    name={`q${currentIndex}`}
+                    value={opt}
+                    checked={selectedAnswer === opt}
+                    onChange={onOptionChange}
+                  />
+                  <span>{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
 
-      <nav className="navigation-buttons">
-        <button className="btn btn-secondary" onClick={onPrev} disabled={currentIndex === 0 || isSubmitting}>Previous</button>
-        {currentIndex === total - 1 ? (
-          <button className="btn btn-success" onClick={() => onSubmit(false)} disabled={isSubmitting}>
-            {isSubmitting ? "Submitting..." : "Submit Test"}
-          </button>
-        ) : (
-          <button className="btn btn-primary" onClick={onNext} disabled={isSubmitting}>Next</button>
-        )}
-      </nav>
-    </main>
-  );
+          <nav className="navigation-buttons">
+            <button className="btn btn-secondary" onClick={onPrev} disabled={currentIndex === 0 || isSubmitting}>Previous</button>
+            {currentIndex === total - 1 ? (
+              <button className="btn btn-success" onClick={() => onSubmit(false)} disabled={isSubmitting}>
+                {isSubmitting ? "Submitting..." : "Submit Test"}
+              </button>
+            ) : (
+              <button className="btn btn-primary" onClick={onNext} disabled={isSubmitting}>Next</button>
+            )}
+          </nav>
+        </main>
+    );
 });
 
 const QuestionPalette = memo(({ totalQuestions, currentIndex, answers, visited, onJump }) => {
-  const getStatus = (i) => {
-    if (currentIndex === i) return "active";
-    if (answers[i]) return "answered";
-    if (visited.has(i)) return "skipped"; 
-    return "unvisited";
-  };
-    
-  const questionIndices = Array.from({ length: totalQuestions }, (_, i) => i);
-  const answeredCount = Object.keys(answers).length;
-  const skippedCount = questionIndices.filter(i => visited.has(i) && !answers[i]).length;
+  
+  const getStatus = (i) => {
+    if (currentIndex === i) return "active";
+    if (answers[i]) return "answered";
+    // A question is "skipped" if it was visited, but an answer was not recorded
+    if (visited.has(i)) return "skipped"; 
+    return "unvisited";
+  };
+    
+  const questionIndices = Array.from({ length: totalQuestions }, (_, i) => i);
+  const answeredCount = Object.keys(answers).length;
+  const skippedCount = questionIndices.filter(i => visited.has(i) && !answers[i]).length;
 
-  return (
-    <aside className="question-palette-area">
-      <h5>Question Palette</h5>
-      <p className="palette-summary">
-        <span className="answered-count">Answered:</span> {answeredCount} | 
-        <span className="skipped-count">Skipped:</span> {skippedCount} | 
-        <span style={{fontWeight: 'bold'}}> Total:</span> {totalQuestions}
-      </p>
-      <div className="question-grid">
-        {questionIndices.map((i) => (
-          <button
-            key={i}
-            className={`palette-btn ${getStatus(i)}`}
-            onClick={() => onJump(i)}
-            title={`Question ${i + 1}: ${getStatus(i).toUpperCase()}`}
-          >{i + 1}</button>
-        ))}
-      </div>
-    </aside>
-  );
+  return (
+    <aside className="question-palette-area">
+      <h5>Question Palette</h5>
+      {/* CORRECTION: Use CSS class for palette summary instead of inline style with var() */}
+      <p className="palette-summary">
+        <span className="answered-count">Answered:</span> {answeredCount} | 
+        <span className="skipped-count">Skipped:</span> {skippedCount} | 
+        <span style={{fontWeight: 'bold'}}> Total:</span> {totalQuestions}
+      </p>
+      <div className="question-grid">
+        {questionIndices.map((i) => (
+          <button
+            key={i}
+            className={`palette-btn ${getStatus(i)}`}
+            onClick={() => onJump(i)}
+            title={`Question ${i + 1}: ${getStatus(i).toUpperCase()}`}
+          >{i + 1}</button>
+        ))}
+      </div>
+    </aside>
+  );
 });
 
 const PauseModal = memo(({ onResume, onSubmit }) => (
-  <div className="modal-overlay">
-    <div className="modal-content">
-      <h3>Test Paused</h3>
-      <p>Your time has been stopped. You can resume the test to continue or submit your current progress.</p>
-      <div className="modal-actions">
-        <button className="btn btn-primary" onClick={onResume}>
-          Resume Test
-        </button>
-        <button className="btn btn-success" onClick={onSubmit}>
-          Submit Now
-        </button>
-      </div>
-    </div>
-  </div>
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h3>Test Paused</h3>
+        <p>Your time has been stopped. You can resume the test to continue or submit your current progress.</p>
+        <div className="modal-actions">
+          <button className="btn btn-primary" onClick={onResume}>
+            Resume Test
+          </button>
+          <button className="btn btn-success" onClick={onSubmit}>
+            Submit Now
+          </button>
+        </div>
+      </div>
+    </div>
 ));
 
-/* --- Main Component --- */
+
+// --- Main Component ---
 const Test = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { exam, mockTest, id } = useParams();
-  
-  const questionAreaRef = useRef(null);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { exam, mockTest, id } = useParams();
+  
+  const questionAreaRef = useRef(null);
 
-  const { tests, error } = useSelector((state) => state.tests);
+  const { tests, error } = useSelector((state) => state.tests);
 
-  const [currentTest, setCurrentTest] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPauseModal, setShowPauseModal] = useState(false);
-  const [timeoutNotification, setTimeoutNotification] = useState(false);
+  const [currentTest, setCurrentTest] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPauseModal, setShowPauseModal] = useState(false);
+  const [timeoutNotification, setTimeoutNotification] = useState(false);
 
-  const isResume = location.state?.isResume;
-  const initialTimeDuration = 3600; 
+  const isResume = location.state?.isResume;
+  
+  // Use a default large number, which will be overwritten on load
+  const initialTimeDuration = 3600; 
 
-  const totalQuestions = currentTest?.questions?.length || 0;
-  const { 
-    currentIndex, 
-    answers, 
-    visited, 
-    updateAnswer, 
-    handleJump, 
-    handleNext, 
-    handlePrev,
-    setCurrentIndex,
-    setAnswers,
-    setVisited
-  } = useTestAttempt(totalQuestions);
+  // Handlers are passed directly to useTimer
+  const handleTimeUp = useCallback(() => handleSubmit(true), [handleSubmit]);
+  const { timeLeft, start, pause, resume, isPaused, setTimeLeft } = useTimer(initialTimeDuration, handleTimeUp);
 
-  // --- Submission Handler (moved UP) ---
+  const totalQuestions = currentTest?.questions?.length || 0;
+  const { 
+    currentIndex, 
+    answers, 
+    visited, 
+    updateAnswer, 
+    handleJump, 
+    handleNext, 
+    handlePrev,
+    setCurrentIndex,
+    setAnswers,
+    setVisited
+  } = useTestAttempt(totalQuestions);
+
+
+  // --- Submission Handler (Moved up for useTimer dependency) ---
   const handleSubmit = useCallback(async (auto = false) => {
     if (!currentTest || isSubmitting) return;
     setIsSubmitting(true);
 
-    pause();
+    pause(); // Pause the timer permanently before submission
     setShowPauseModal(false);
 
     if (auto) {
@@ -1669,138 +2045,156 @@ const Test = () => {
       answers: currentTest.questions.map((q, i) => ({
         question: q.questionText,
         selectedOption: answers[i] || "Not Attempted",
-        isCorrect: answers[i] === q.answer, 
+        // Note: isCorrect should ideally be calculated on the backend
+        isCorrect: answers[i] === q.answer, 
       })),
       timeTaken: currentTest.timeDuration * 60 - timeLeft,
     };
     
     try {
-      const result = await dispatch(submitTest(payload));
-      if (result.error) throw new Error(result.error.message || "Submission failed");
-      navigate(`/${exam}/${mockTest}/test/result/${currentTest._id}`);
+        // Dispatch must be awaited to ensure navigation happens after completion
+        const result = await dispatch(submitTest(payload));
+        // Check for success/error from the Redux action response structure
+        if (result.error) {
+             throw new Error(result.error.message || "Submission failed");
+        }
+        navigate(`/${exam}/${mockTest}/test/result/${currentTest._id}`);
     } catch (e) {
-      setIsSubmitting(false);
-      console.error("Submission failed:", e);
-      alert(`Failed to submit test. Please try again. Error: ${e.message}`);
-      if (!auto) resume();
+        setIsSubmitting(false);
+        // Alert the user that submission failed, but allow manual retry
+        console.error("Submission failed:", e);
+        alert(`Failed to submit test. Please try again. Error: ${e.message}`);
+        // Resume on failure if it wasn't an auto-submission
+        if (!auto) resume();
     }
+
   }, [answers, currentTest, timeLeft, exam, mockTest, dispatch, navigate, isSubmitting, pause, resume]);
 
-  // Timer hook AFTER handleSubmit exists
-  const handleTimeUp = useCallback(() => handleSubmit(true), [handleSubmit]);
-  const { timeLeft, start, pause, resume, isPaused, setTimeLeft } = useTimer(initialTimeDuration, handleTimeUp);
+  // --- Fetch Test Data ---
+  useEffect(() => { 
+    if (exam && !tests.length) dispatch(getTests(exam)); 
+  }, [exam, dispatch, tests.length]);
 
-  // --- Fetch Test Data ---
-  useEffect(() => { 
-    if (exam && !tests.length) dispatch(getTests(exam)); 
-  }, [exam, dispatch, tests.length]);
+  useEffect(() => {
+    if (!tests.length) return;
+    const test = tests.find((t) => t._id === id);
+    if (!test) return;
+    
+    setCurrentTest(test);
+    const totalTime = test.timeDuration * 60;
+    
+    // Attempt resume logic
+    if (isResume) {
+      // Wrap the dispatch in a try/catch or .then/.catch to handle the async promise
+      dispatch(resumeTest(test._id)).then((res) => {
+        const attempt = res?.payload?.attempt; 
+        if (attempt) {
+          const index = attempt.currentQuestionIndex || 0;
+          
+          // Update state from resumed data
+          setAnswers(attempt.inProgressAnswers || {});
+          setCurrentIndex(index);
+          const attemptedIndices = Object.keys(attempt.inProgressAnswers).map(Number);
+          setVisited(new Set([...attemptedIndices, index]));
+          
+          // Start the timer with saved time
+          start(attempt.timeLeft || totalTime); 
+        } else {
+          start(totalTime); // Start fresh if resume fails
+        }
+      }).catch(err => {
+            console.error("Resume failed:", err);
+            start(totalTime); // Fallback to starting fresh
+       });
+    } else {
+        start(totalTime); // Start fresh
+    }
 
-  useEffect(() => {
-    if (!tests.length) return;
-    const test = tests.find((t) => t._id === id);
-    if (!test) return;
-    
-    setCurrentTest(test);
-    const totalTime = test.timeDuration * 60;
-    
-    if (isResume) {
-      dispatch(resumeTest(test._id)).then((res) => {
-        const attempt = res?.payload?.attempt; 
-        if (attempt) {
-          const index = attempt.currentQuestionIndex || 0;
-          setAnswers(attempt.inProgressAnswers || {});
-          setCurrentIndex(index);
-          const attemptedIndices = Object.keys(attempt.inProgressAnswers || {}).map(Number);
-          setVisited(new Set([...attemptedIndices, index]));
-          start(attempt.timeLeft || totalTime); 
-        } else {
-          start(totalTime); 
-        }
-      }).catch(err => {
-        console.error("Resume failed:", err);
-        start(totalTime); 
-      });
-    } else {
-      start(totalTime);
-    }
-  }, [tests, id, isResume, dispatch, start, setCurrentIndex, setAnswers, setVisited]);
+  }, [tests, id, isResume, dispatch, start, setCurrentIndex, setAnswers, setVisited]);
 
-  // Pause handlers
-  const handlePause = () => {
-    if (!currentTest || isSubmitting) return;
-    pause();
-    setShowPauseModal(true);
-    dispatch(pauseTest({
-      testId: currentTest._id,
-      timeLeft: timeLeft,
-      inProgressAnswers: answers,
-      currentQuestionIndex: currentIndex,
-    }));
-  };
 
-  const handleResume = () => {
-    if (isSubmitting) return;
-    resume();
-    setShowPauseModal(false);
-  };
-  
-  // --- Render ---
-  if (error) return <p className="error-message">❌ Error loading test: {error}</p>;
-  if (!currentTest || !currentTest.questions) return <p className="loading-message">Loading test details...</p>;
-  if (currentTest.questions.length === 0) return <p className="empty-message">No questions found for this test.</p>;
+  // --- Pause Handler ---
 
-  const currentQuestion = currentTest.questions[currentIndex];
-  
-  return (
-    <Fragment>
-      <MetaData title="Test in Progress" />
-      <TestStyles />
-      
-      {timeoutNotification && (
-          <div className="timeout-notification">
-              Time's up! Submitting automatically...
-          </div>
-      )}
+  const handlePause = () => {
+    if (!currentTest || isSubmitting) return;
+    pause();
+    setShowPauseModal(true);
+    
+    // Dispatch pause action to save current state
+    dispatch(pauseTest({
+        testId: currentTest._id,
+        timeLeft: timeLeft,
+        inProgressAnswers: answers,
+        currentQuestionIndex: currentIndex,
+    }));
+  };
 
-      {isPaused && showPauseModal && (
-          <PauseModal 
-              onResume={handleResume} 
-              onSubmit={() => handleSubmit(false)} 
-          />
-      )}
+  const handleResume = () => {
+    if (isSubmitting) return;
+    resume();
+    setShowPauseModal(false);
+  };
+  
+  // --- Render Logic ---
 
-      <div className="test-container-fullscreen">
-        <TestHeader
-          timeLeft={timeLeft}
-          totalTime={currentTest.timeDuration * 60}
-          currentIndex={currentIndex}
-          total={totalQuestions}
-          onPause={handlePause}
-        />
-        <div className="test-layout">
-          <QuestionContent
-            question={currentQuestion}
-            currentIndex={currentIndex}
-            total={totalQuestions}
-            selectedAnswer={answers[currentIndex]}
-            onOptionChange={(e) => updateAnswer(currentIndex, e.target.value)}
-            onNext={handleNext}
-            onPrev={handlePrev}
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-            questionAreaRef={questionAreaRef}
-          />
-          <QuestionPalette
-            totalQuestions={totalQuestions}
-            currentIndex={currentIndex}
-            answers={answers}
-            visited={visited}
-            onJump={handleJump}
-          />
-        </div>
-      </div>
-    </Fragment>
-  );
+  if (error) return <p className="error-message">❌ Error loading test: {error}</p>;
+  if (!currentTest || !currentTest.questions) return <p className="loading-message">Loading test details...</p>;
+  if (currentTest.questions.length === 0) return <p className="empty-message">No questions found for this test.</p>;
+
+  const currentQuestion = currentTest.questions[currentIndex];
+  
+  return (
+    <Fragment>
+      <MetaData title="Test in Progress" />
+      <TestStyles />
+      
+      {/* Time Out Notification */}
+      {timeoutNotification && (
+          <div className="timeout-notification">
+              Time's up! Submitting automatically...
+          </div>
+      )}
+
+      {/* Pause Modal */}
+      {isPaused && showPauseModal && (
+          <PauseModal 
+              onResume={handleResume} 
+              onSubmit={() => handleSubmit(false)} 
+          />
+      )}
+
+      <div className="test-container-fullscreen">
+        <TestHeader
+          timeLeft={timeLeft}
+          totalTime={currentTest.timeDuration * 60}
+          currentIndex={currentIndex}
+          total={totalQuestions}
+          onPause={handlePause}
+        />
+        <div className="test-layout">
+          <QuestionContent
+            question={currentQuestion}
+            currentIndex={currentIndex}
+            total={totalQuestions}
+            selectedAnswer={answers[currentIndex]}
+            onOptionChange={(e) => updateAnswer(currentIndex, e.target.value)}
+            onNext={handleNext}
+            onPrev={handlePrev}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            questionAreaRef={questionAreaRef}
+          />
+          <QuestionPalette
+            totalQuestions={totalQuestions}
+            currentIndex={currentIndex}
+            answers={answers}
+            visited={visited}
+            onJump={handleJump}
+          />
+        </div>
+      </div>
+    </Fragment>
+  );
 };
 
 export default Test;
