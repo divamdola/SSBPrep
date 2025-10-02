@@ -13,6 +13,7 @@ import {
     TEST_RESULT_REQUEST,
     TEST_RESULT_SUCCESS,
     TEST_RESULT_FAIL,
+    PAUSE_TEST
 } from "../constants/productConstants";
 
 export const getProducts = (category) => async (dispatch) => {
@@ -161,29 +162,25 @@ export const getResult = (testId) => async (dispatch) => {
   }
 };
 
-export const pauseTest = ({ testId, timeLeft, answers, currentQuestionIndex, exam, mockTest }) => 
+export const pauseTest = ({ testId, timeLeft, inProgressAnswers, currentQuestionIndex }) => 
   async (dispatch) => {
     try {
-      await axiosInstance.post("/test/pause", {
+      const { data } = await axiosInstance.post("/test/pause", {
         testId,
         timeLeft,
-        answers,
+        answers: inProgressAnswers,
         currentQuestionIndex,
       });
 
-      // Save locally
-      localStorage.setItem(
-        "pausedTest",
-        JSON.stringify({
-          testId,
-          exam,
-          mockTest,
-          timeLeft,
-          answers,
-          currentQuestionIndex,
-        })
-      );
+      // Dispatching the action to the reducer is the correct way to update state.
+      dispatch({
+        type: PAUSE_TEST,
+        payload: data.attempt, 
+      });
 
+      // REMOVED: This is no longer necessary as MockList now relies on the Redux store.
+      // localStorage.setItem("pausedTest", JSON.stringify({ testId }));
+      
       return { success: true };
     } catch (error) {
       console.error("Pause Test Error:", error.response?.data || error);

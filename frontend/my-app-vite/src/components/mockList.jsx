@@ -17,8 +17,6 @@ const MockList = () => {
     (state) => state.tests
   );
 
-  const pausedTest = JSON.parse(localStorage.getItem("pausedTest"));
-
   useEffect(() => {
     if (selectedExam) {
       dispatch(getTests(selectedExam));
@@ -48,17 +46,13 @@ const MockList = () => {
         <div className="mocks">
           {tests.length > 0 ? (
             tests.map((test) => {
-              const isPausedTest =
-                (pausedTest?.testId === test._id &&
-                  pausedTest?.exam === selectedExam &&
-                  pausedTest?.mockTest === selectedMockTest) ||
-                attempts?.some(
-                  (a) => a.test?.toString() === test._id && a.paused
-                );
-
+              // Find the attempt record for this specific test from the Redux store.
               const attemptedTest = attempts?.find(
                 (a) => a.test?.toString() === test._id
               );
+
+              // Determine if the test is paused based *only* on the attempt record.
+              const isPausedTest = attemptedTest && attemptedTest.paused;
 
               return (
                 <div className="mock-container" key={test._id}>
@@ -68,7 +62,10 @@ const MockList = () => {
                       <p style={{ marginBottom: "8px" }}>
                         Score:{" "}
                         <span className="score-value">
-                          {formatScore(attemptedTest.score)}
+                          {/* Show 'In Progress' for paused tests */}
+                          {isPausedTest
+                            ? "In Progress"
+                            : formatScore(attemptedTest.score)}
                         </span>
                       </p>
                     </div>
@@ -76,11 +73,7 @@ const MockList = () => {
 
                   <button
                     onClick={async () => {
-                      if (isPausedTest) {
-                        localStorage.removeItem("pausedTest"); // clear stale paused test
-                      }
-
-                      // Ensure fullscreen before navigation
+                      // Ensure fullscreen before navigation on larger screens
                       if (
                         window.innerWidth > 768 &&
                         document.documentElement.requestFullscreen &&
@@ -89,15 +82,18 @@ const MockList = () => {
                         try {
                           await document.documentElement.requestFullscreen();
                         } catch (e) {
-                          // user canceled
+                          // User canceled fullscreen request
                         }
                       }
 
+                      // If test is completed (attempt exists and is not paused), go to result.
                       if (attemptedTest && !attemptedTest.paused) {
                         navigate(
                           `/${selectedExam}/${selectedMockTest}/test/result/${attemptedTest.test}`
                         );
                       } else {
+                        // Otherwise, go to the test page.
+                        // isResume will be true if the test was found and is paused.
                         navigate(
                           `/${selectedExam}/${selectedMockTest}/test/${test._id}`,
                           {
