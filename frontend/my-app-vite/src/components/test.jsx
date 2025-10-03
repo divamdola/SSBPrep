@@ -124,6 +124,8 @@ const TestStyles = () => (
         }
     }
     .option-item {
+    flex-wrap:wrap;
+    align-content:center;
       display: flex;
       align-items: flex-start;
       padding: 15px;
